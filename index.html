@@ -1,0 +1,1328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Palms - Parking Dashboard</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        :root {
+            --bg-primary: #fafafa;
+            --bg-secondary: #ffffff;
+            --bg-tertiary: #f5f3f0;
+            --bg-accent: #ebe8e4;
+            --text-primary: #1a1a1a;
+            --text-secondary: #666666;
+            --text-tertiary: #999999;
+            --border-color: #e5e2de;
+            --accent-primary: #2563eb;
+            --accent-hover: #1d4ed8;
+            --accent-light: #dbeafe;
+            --success: #059669;
+            --success-light: #d1fae5;
+            --danger: #dc2626;
+            --danger-light: #fee2e2;
+            --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+            --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+            --shadow-lg: 0 8px 24px rgba(0,0,0,0.12);
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: var(--bg-primary);
+            min-height: 100vh;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            color: var(--text-primary);
+            line-height: 1.5;
+        }
+        .access-screen {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background: var(--bg-tertiary);
+        }
+        .access-box {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 48px;
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+            box-shadow: var(--shadow-lg);
+        }
+        .access-box h1 { font-size: 24px; font-weight: 600; margin-bottom: 8px; }
+        .access-box p { color: var(--text-secondary); font-size: 14px; margin-bottom: 32px; }
+        .logo-icon {
+            width: 56px;
+            height: 56px;
+            background: var(--accent-primary);
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            font-size: 28px;
+        }
+        .input {
+            width: 100%;
+            padding: 14px 16px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+            color: var(--text-primary);
+            font-size: 15px;
+            outline: none;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        .input:focus { border-color: var(--accent-primary); box-shadow: 0 0 0 3px var(--accent-light); }
+        .input::placeholder { color: var(--text-tertiary); }
+        .input.error { border-color: var(--danger); }
+        select.input {
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23666' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            padding-right: 36px;
+        }
+        .btn {
+            width: 100%;
+            padding: 14px 24px;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn-primary { background: var(--accent-primary); color: #fff; }
+        .btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
+        .btn-secondary { background: var(--bg-tertiary); color: var(--text-primary); border: 1px solid var(--border-color); }
+        .btn-secondary:hover:not(:disabled) { background: var(--bg-accent); }
+        .btn-danger { background: var(--danger); color: #fff; }
+        .error-msg { color: var(--danger); font-size: 13px; margin-top: 8px; }
+        .dashboard { display: none; min-height: 100vh; background: var(--bg-primary); }
+        .dashboard.active { display: block; }
+        header {
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .logo { display: flex; align-items: center; gap: 12px; }
+        .logo-sm { width: 40px; height: 40px; background: var(--accent-primary); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; font-size: 20px; }
+        .logo h1 { font-size: 18px; font-weight: 600; }
+        .main { max-width: 1200px; margin: 0 auto; padding: 24px; }
+        .filters {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            align-items: flex-end;
+        }
+        .filter-group { display: flex; flex-direction: column; gap: 6px; }
+        .filter-group label { font-size: 12px; color: var(--text-secondary); font-weight: 500; }
+        .filter-group .input { min-width: 140px; padding: 10px 12px; }
+        .results-count { color: var(--text-secondary); font-size: 14px; margin-bottom: 16px; }
+        .spots-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
+        .spot-card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            transition: all 0.2s ease;
+            box-shadow: var(--shadow-sm);
+        }
+        .spot-card:hover { border-color: var(--accent-primary); box-shadow: var(--shadow-md); transform: translateY(-2px); }
+        .spot-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; }
+        .spot-badge { background: var(--success-light); color: var(--success); padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; display: inline-block; margin-bottom: 8px; }
+        .spot-venmo { color: var(--text-secondary); font-size: 13px; }
+        .spot-venmo span { color: var(--accent-primary); font-weight: 500; }
+        .spot-price { text-align: right; }
+        .spot-price .amount { font-size: 24px; font-weight: 700; color: var(--text-primary); }
+        .spot-price .period { font-size: 12px; color: var(--text-tertiary); }
+        .spot-info-row { display: flex; gap: 8px; margin-bottom: 16px; }
+        .spot-info-tag { background: var(--bg-tertiary); padding: 6px 12px; border-radius: 20px; font-size: 12px; color: var(--text-secondary); }
+        .spot-dates { display: flex; gap: 12px; align-items: center; padding: 16px; background: var(--bg-tertiary); border-radius: var(--radius-md); margin-bottom: 16px; }
+        .spot-dates-icon { font-size: 24px; }
+        .spot-dates-label { font-size: 11px; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.5px; }
+        .spot-dates-value { font-size: 14px; color: var(--text-primary); font-weight: 500; }
+        .spot-btn { width: 100%; padding: 12px; border: none; border-radius: var(--radius-sm); font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s ease; background: var(--accent-primary); color: #fff; margin-bottom: 8px; }
+        .spot-btn:hover { background: var(--accent-hover); }
+        .spot-btn.manage-btn { background: var(--bg-tertiary); color: var(--text-secondary); border: 1px solid var(--border-color); margin-bottom: 0; }
+        .spot-btn.manage-btn:hover { background: var(--bg-accent); }
+        .loading { text-align: center; padding: 60px 20px; color: var(--text-secondary); }
+        .spinner { width: 40px; height: 40px; border: 3px solid var(--border-color); border-top-color: var(--accent-primary); border-radius: 50%; margin: 0 auto 16px; animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .empty-state { text-align: center; padding: 60px 20px; color: var(--text-secondary); }
+        .empty-state .icon { font-size: 48px; margin-bottom: 16px; }
+        .empty-state .title { font-size: 18px; font-weight: 600; color: var(--text-primary); margin-bottom: 8px; }
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            padding: 20px;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.2s ease;
+        }
+        .modal-overlay.active { opacity: 1; visibility: visible; }
+        .modal {
+            background: var(--bg-secondary);
+            border-radius: var(--radius-lg);
+            width: 100%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow: auto;
+            box-shadow: var(--shadow-lg);
+        }
+        .modal-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .modal-header h2 { font-size: 18px; font-weight: 600; }
+        .modal-close {
+            background: var(--bg-tertiary);
+            border: none;
+            border-radius: var(--radius-sm);
+            width: 32px;
+            height: 32px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 18px;
+        }
+        .modal-close:hover { background: var(--bg-accent); }
+        .modal-body { padding: 24px; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; color: var(--text-secondary); font-size: 13px; font-weight: 500; margin-bottom: 8px; }
+        .form-group label.required::after { content: ' *'; color: var(--danger); }
+        .form-group .hint { color: var(--text-tertiary); font-size: 12px; margin-top: 6px; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .timezone-hint { color: var(--text-tertiary); font-size: 11px; margin-top: 4px; }
+        .cost-box {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 20px;
+            margin-bottom: 24px;
+        }
+        .cost-row { display: flex; justify-content: space-between; margin-bottom: 12px; color: var(--text-secondary); }
+        .cost-row.total { border-top: 1px solid var(--border-color); padding-top: 12px; margin-bottom: 0; }
+        .cost-row.total .label { color: var(--text-primary); font-weight: 600; }
+        .cost-row.total .value { color: var(--accent-primary); font-weight: 700; font-size: 20px; }
+        .venmo-box {
+            background: var(--accent-light);
+            border-radius: var(--radius-md);
+            padding: 16px;
+            margin-bottom: 24px;
+            text-align: center;
+        }
+        .venmo-box .label { color: var(--text-secondary); font-size: 12px; margin-bottom: 8px; }
+        .venmo-box .handle { color: var(--accent-primary); font-size: 18px; font-weight: 600; }
+        .upload-area {
+            border: 2px dashed var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 32px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .upload-area:hover { border-color: var(--accent-primary); background: var(--accent-light); }
+        .upload-area.has-file { border-style: solid; border-color: var(--success); background: var(--success-light); }
+        .upload-icon { font-size: 32px; margin-bottom: 12px; }
+        .upload-text { color: var(--text-primary); margin-bottom: 4px; }
+        .upload-hint { color: var(--text-tertiary); font-size: 13px; }
+        .upload-preview { max-width: 100%; max-height: 200px; border-radius: var(--radius-sm); }
+        .clear-btn { margin-top: 12px; padding: 8px 16px; background: var(--bg-secondary); border: 1px solid var(--danger); border-radius: var(--radius-sm); color: var(--danger); font-size: 13px; cursor: pointer; }
+        .clear-btn:hover { background: var(--danger-light); }
+        .success-content { text-align: center; padding: 20px 0; }
+        .success-icon { width: 80px; height: 80px; background: var(--success); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px; font-size: 40px; }
+        .spot-number-reveal { background: var(--accent-primary); border-radius: var(--radius-lg); padding: 24px; margin-bottom: 24px; }
+        .spot-number-reveal .label { color: rgba(255,255,255,0.8); font-size: 14px; margin-bottom: 8px; }
+        .spot-number-reveal .number { color: #fff; font-size: 48px; font-weight: 700; letter-spacing: 2px; }
+        .owner-contact { background: var(--bg-tertiary); border-radius: var(--radius-md); padding: 16px; margin-bottom: 16px; text-align: center; }
+        .owner-contact .label { font-size: 12px; color: var(--text-tertiary); margin-bottom: 4px; }
+        .owner-contact .value { font-size: 16px; font-weight: 600; color: var(--text-primary); }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+    
+    <script type="text/babel">
+        const { useState, useEffect, useCallback } = React;
+
+        // ============== CONFIG ==============
+        const CONFIG = {
+            GOOGLE_SCRIPT_URL: '', // PUT YOUR GOOGLE SCRIPT URL HERE
+            ACCESS_CODE: 'parking2024',
+            PRICE_PER_DAY: 10,
+            TIMEZONE: 'PST'
+        };
+
+        // ============== MOCK DATA ==============
+        const MOCK_DATA = [
+            { id: '1', venmo: '@john-doe', email: 'john@email.com', phone: '555-123-4567', spotNumber: 'A-142', availableFrom: '2025-02-05', availableFromTime: '08:00', availableTo: '2025-02-20', availableToTime: '18:00', pricePerDay: 10, status: 'available', pin: '1234', size: 'Full Size', floor: 'P1' },
+            { id: '2', venmo: '@jane-smith', email: 'jane@email.com', phone: '555-234-5678', spotNumber: 'B-88', availableFrom: '2025-02-06', availableFromTime: '09:00', availableTo: '2025-02-15', availableToTime: '17:00', pricePerDay: 10, status: 'available', pin: '5678', size: 'Compact', floor: 'P2' },
+            { id: '3', venmo: '@mike-wilson', email: 'mike@email.com', phone: '555-345-6789', spotNumber: 'C-201', availableFrom: '2025-02-04', availableFromTime: '07:00', availableTo: '2025-02-28', availableToTime: '20:00', pricePerDay: 10, status: 'available', pin: '0000', size: 'Full Size', floor: 'P3' },
+            { id: '4', venmo: '@sarah-lee', email: 'sarah@email.com', phone: '555-456-7890', spotNumber: 'A-55', availableFrom: '2025-02-10', availableFromTime: '06:00', availableTo: '2025-02-12', availableToTime: '22:00', pricePerDay: 10, status: 'available', pin: '9999', size: 'Motorcycle', floor: 'P1' },
+        ];
+
+        // ============== UTILITY FUNCTIONS ==============
+        const formatDate = (dateStr) => {
+            const date = new Date(dateStr + 'T00:00:00');
+            return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        };
+
+        const formatTime = (timeStr) => {
+            if (!timeStr) return '';
+            const [hours, minutes] = timeStr.split(':');
+            const h = parseInt(hours);
+            const ampm = h >= 12 ? 'PM' : 'AM';
+            const h12 = h % 12 || 12;
+            return `${h12}:${minutes} ${ampm}`;
+        };
+
+        const formatTimeWithTZ = (timeStr) => {
+            return `${formatTime(timeStr)} ${CONFIG.TIMEZONE}`;
+        };
+
+        const daysBetween = (start, end) => {
+            return Math.ceil((new Date(end) - new Date(start)) / (1000 * 60 * 60 * 24));
+        };
+
+        const hoursBetween = (startDate, startTime, endDate, endTime) => {
+            const start = new Date(`${startDate}T${startTime || '00:00'}`);
+            const end = new Date(`${endDate}T${endTime || '23:59'}`);
+            return (end - start) / (1000 * 60 * 60);
+        };
+
+        const calculateBillableDays = (startDate, startTime, endDate, endTime) => {
+            const hours = hoursBetween(startDate, startTime, endDate, endTime);
+            if (hours <= 0) return 0;
+            return Math.ceil(hours / 24);
+        };
+
+        const getTodayString = () => new Date().toISOString().split('T')[0];
+
+        const isDateInRange = (date, start, end) => {
+            const d = new Date(date), s = new Date(start), e = new Date(end);
+            return d >= s && d <= e;
+        };
+
+        const fileToBase64 = (file) => {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        };
+
+        // ============== API FUNCTIONS ==============
+        const api = {
+            async fetchSpots() {
+                if (!CONFIG.GOOGLE_SCRIPT_URL) return MOCK_DATA;
+                try {
+                    const response = await fetch(CONFIG.GOOGLE_SCRIPT_URL + '?action=getSpots');
+                    const data = await response.json();
+                    return data.spots || [];
+                } catch (error) {
+                    console.error('Error fetching spots:', error);
+                    return MOCK_DATA;
+                }
+            },
+
+            async addSpot(spotData) {
+                if (!CONFIG.GOOGLE_SCRIPT_URL) {
+                    return { success: true, id: Date.now().toString() };
+                }
+                try {
+                    const params = new URLSearchParams({
+                        action: 'addSpot',
+                        accessCode: CONFIG.ACCESS_CODE,
+                        data: JSON.stringify(spotData)
+                    });
+                    const response = await fetch(`${CONFIG.GOOGLE_SCRIPT_URL}?${params.toString()}`);
+                    return await response.json();
+                } catch (error) {
+                    return { success: false, error: error.message };
+                }
+            },
+
+            async verifyPin(spotId, pin) {
+                if (!CONFIG.GOOGLE_SCRIPT_URL) {
+                    const spot = MOCK_DATA.find(s => s.id === spotId);
+                    return (spot && spot.pin === pin) ? { success: true } : { success: false, error: 'Incorrect PIN' };
+                }
+                try {
+                    const params = new URLSearchParams({ action: 'verifyPin', accessCode: CONFIG.ACCESS_CODE, spotId, pin });
+                    const response = await fetch(`${CONFIG.GOOGLE_SCRIPT_URL}?${params.toString()}`);
+                    return await response.json();
+                } catch (error) {
+                    return { success: false, error: error.message };
+                }
+            },
+
+            async updateSpot(spotId, pin, spotData) {
+                if (!CONFIG.GOOGLE_SCRIPT_URL) {
+                    return { success: true };
+                }
+                try {
+                    const params = new URLSearchParams({ action: 'updateSpot', accessCode: CONFIG.ACCESS_CODE, spotId, pin, data: JSON.stringify(spotData) });
+                    const response = await fetch(`${CONFIG.GOOGLE_SCRIPT_URL}?${params.toString()}`);
+                    return await response.json();
+                } catch (error) {
+                    return { success: false, error: error.message };
+                }
+            },
+
+            async deleteSpot(spotId, pin) {
+                if (!CONFIG.GOOGLE_SCRIPT_URL) {
+                    return { success: true };
+                }
+                try {
+                    const params = new URLSearchParams({ action: 'deleteSpot', accessCode: CONFIG.ACCESS_CODE, spotId, pin });
+                    const response = await fetch(`${CONFIG.GOOGLE_SCRIPT_URL}?${params.toString()}`);
+                    return await response.json();
+                } catch (error) {
+                    return { success: false, error: error.message };
+                }
+            },
+
+            async rentSpot(spotId, startDate, startTime, endDate, endTime, renterInfo) {
+                if (!CONFIG.GOOGLE_SCRIPT_URL) {
+                    const spot = MOCK_DATA.find(s => s.id === spotId);
+                    return { success: true, spotNumber: spot?.spotNumber || 'A-000', ownerPhone: spot?.phone || '555-000-0000' };
+                }
+                try {
+                    const params = new URLSearchParams({
+                        action: 'rentSpot',
+                        accessCode: CONFIG.ACCESS_CODE,
+                        spotId,
+                        startDate,
+                        startTime: startTime || '00:00',
+                        endDate,
+                        endTime: endTime || '23:59',
+                        renterInfo: JSON.stringify(renterInfo)
+                    });
+                    const response = await fetch(`${CONFIG.GOOGLE_SCRIPT_URL}?${params.toString()}`);
+                    return await response.json();
+                } catch (error) {
+                    return { success: false, error: error.message };
+                }
+            }
+        };
+
+        // ============== COMPONENTS ==============
+
+        // Access Screen Component
+        const AccessScreen = ({ onAccess }) => {
+            const [code, setCode] = useState('');
+            const [error, setError] = useState(false);
+
+            const handleSubmit = () => {
+                if (code === CONFIG.ACCESS_CODE) {
+                    localStorage.setItem('parking_access', 'granted');
+                    onAccess();
+                } else {
+                    setError(true);
+                }
+            };
+
+            return (
+                <div className="access-screen">
+                    <div className="access-box">
+                        <div className="logo-icon">🚗</div>
+                        <h1>The Palms Parking</h1>
+                        <p>Enter the access code to view available spots</p>
+                        <input
+                            type="password"
+                            className={`input ${error ? 'error' : ''}`}
+                            placeholder="Enter access code"
+                            value={code}
+                            onChange={(e) => { setCode(e.target.value); setError(false); }}
+                            onKeyPress={(e) => e.key === 'Enter' && handleSubmit()}
+                            style={{ marginBottom: '16px' }}
+                        />
+                        {error && <div className="error-msg" style={{ marginBottom: '16px' }}>Incorrect access code</div>}
+                        <button className="btn btn-primary" onClick={handleSubmit}>Enter Dashboard</button>
+                    </div>
+                </div>
+            );
+        };
+
+        // Spot Card Component
+        const SpotCard = ({ spot, onRent, onManage }) => {
+            const days = daysBetween(spot.availableFrom, spot.availableTo);
+            const sizeIcons = { 'Full Size': '🚗', 'Compact': '🚙', 'Motorcycle': '🏍️' };
+            const sizeIcon = sizeIcons[spot.size] || '🚗';
+
+            return (
+                <div className="spot-card">
+                    <div className="spot-header">
+                        <div>
+                            <div className="spot-badge">{days} {days === 1 ? 'day' : 'days'} available</div>
+                            <div className="spot-venmo">Pay to: <span>{spot.venmo}</span></div>
+                        </div>
+                        <div className="spot-price">
+                            <div className="amount">${spot.pricePerDay}</div>
+                            <div className="period">per day</div>
+                        </div>
+                    </div>
+                    <div className="spot-info-row">
+                        <div className="spot-info-tag">{sizeIcon} {spot.size || 'Full Size'}</div>
+                        <div className="spot-info-tag">📍 {spot.floor || 'P1'}</div>
+                    </div>
+                    <div className="spot-dates">
+                        <div className="spot-dates-icon">📅</div>
+                        <div>
+                            <div className="spot-dates-label">Available Period</div>
+                            <div className="spot-dates-value">{formatDate(spot.availableFrom)} → {formatDate(spot.availableTo)}</div>
+                            {spot.availableFromTime && spot.availableToTime && (
+                                <div className="spot-dates-value" style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
+                                    🕐 {formatTimeWithTZ(spot.availableFromTime)} - {formatTimeWithTZ(spot.availableToTime)}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                    <button className="spot-btn" onClick={() => onRent(spot)}>Rent This Spot →</button>
+                    <button className="spot-btn manage-btn" onClick={() => onManage(spot)}>✏️ Edit / Delete Listing</button>
+                </div>
+            );
+        };
+
+        // Modal Component
+        const Modal = ({ isOpen, onClose, title, children }) => {
+            if (!isOpen) return null;
+
+            return (
+                <div className={`modal-overlay ${isOpen ? 'active' : ''}`} onClick={(e) => e.target === e.currentTarget && onClose()}>
+                    <div className="modal">
+                        <div className="modal-header">
+                            <h2>{title}</h2>
+                            <button className="modal-close" onClick={onClose}>×</button>
+                        </div>
+                        <div className="modal-body">
+                            {children}
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // Add Spot Modal
+        const AddSpotModal = ({ isOpen, onClose, onSubmit }) => {
+            const [formData, setFormData] = useState({
+                venmo: '', email: '', phone: '', spotNumber: '',
+                size: 'Full Size', floor: 'P1',
+                availableFrom: '', availableFromTime: '08:00',
+                availableTo: '', availableToTime: '18:00',
+                pricePerDay: CONFIG.PRICE_PER_DAY, pin: ''
+            });
+            const [loading, setLoading] = useState(false);
+
+            const handleChange = (field, value) => {
+                setFormData(prev => ({ ...prev, [field]: value }));
+            };
+
+            const handleSubmit = async () => {
+                const { venmo, email, phone, spotNumber, availableFrom, availableTo, pin } = formData;
+                if (!venmo || !email || !phone || !spotNumber || !availableFrom || !availableTo) {
+                    alert('Please fill in all required fields');
+                    return;
+                }
+                if (!pin || pin.length !== 4 || !/^\d{4}$/.test(pin)) {
+                    alert('Please enter a 4-digit PIN');
+                    return;
+                }
+
+                setLoading(true);
+                const result = await api.addSpot({
+                    ...formData,
+                    venmo: venmo.startsWith('@') ? venmo : '@' + venmo
+                });
+                setLoading(false);
+
+                if (result.success) {
+                    onSubmit();
+                    onClose();
+                    setFormData({
+                        venmo: '', email: '', phone: '', spotNumber: '',
+                        size: 'Full Size', floor: 'P1',
+                        availableFrom: '', availableFromTime: '08:00',
+                        availableTo: '', availableToTime: '18:00',
+                        pricePerDay: CONFIG.PRICE_PER_DAY, pin: ''
+                    });
+                } else {
+                    alert('Error: ' + (result.error || 'Unknown error'));
+                }
+            };
+
+            const today = getTodayString();
+
+            return (
+                <Modal isOpen={isOpen} onClose={onClose} title="List Your Spot">
+                    <div className="form-group">
+                        <label className="required">Your Venmo Handle</label>
+                        <input type="text" className="input" placeholder="@username" value={formData.venmo} onChange={(e) => handleChange('venmo', e.target.value)} />
+                    </div>
+                    <div className="form-row">
+                        <div className="form-group">
+                            <label className="required">Your Email</label>
+                            <input type="email" className="input" placeholder="you@email.com" value={formData.email} onChange={(e) => handleChange('email', e.target.value)} />
+                        </div>
+                        <div className="form-group">
+                            <label className="required">Your Phone</label>
+                            <input type="tel" className="input" placeholder="(555) 123-4567" value={formData.phone} onChange={(e) => handleChange('phone', e.target.value)} />
+                        </div>
+                    </div>
+                    <div className="form-group">
+                        <label className="required">Parking Spot Number</label>
+                        <input type="text" className="input" placeholder="e.g., A-142" value={formData.spotNumber} onChange={(e) => handleChange('spotNumber', e.target.value)} />
+                    </div>
+                    <div className="form-row">
+                        <div className="form-group">
+                            <label>Spot Size</label>
+                            <select className="input" value={formData.size} onChange={(e) => handleChange('size', e.target.value)}>
+                                <option value="Full Size">Full Size</option>
+                                <option value="Compact">Compact</option>
+                                <option value="Motorcycle">Motorcycle</option>
+                            </select>
+                        </div>
+                        <div className="form-group">
+                            <label>Floor</label>
+                            <select className="input" value={formData.floor} onChange={(e) => handleChange('floor', e.target.value)}>
+                                <option value="P1">P1</option>
+                                <option value="P2">P2</option>
+                                <option value="P3">P3</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div className="form-row">
+                        <div className="form-group">
+                            <label className="required">Available From</label>
+                            <input type="date" className="input" min={today} value={formData.availableFrom} onChange={(e) => handleChange('availableFrom', e.target.value)} />
+                            <input type="time" className="input" style={{ marginTop: '8px' }} value={formData.availableFromTime} onChange={(e) => handleChange('availableFromTime', e.target.value)} />
+                            <div className="timezone-hint">Time in {CONFIG.TIMEZONE}</div>
+                        </div>
+                        <div className="form-group">
+                            <label className="required">Available To</label>
+                            <input type="date" className="input" min={formData.availableFrom || today} value={formData.availableTo} onChange={(e) => handleChange('availableTo', e.target.value)} />
+                            <input type="time" className="input" style={{ marginTop: '8px' }} value={formData.availableToTime} onChange={(e) => handleChange('availableToTime', e.target.value)} />
+                            <div className="timezone-hint">Time in {CONFIG.TIMEZONE}</div>
+                        </div>
+                    </div>
+                    <div className="form-group">
+                        <label>Price Per Day ($)</label>
+                        <input type="number" className="input" value={formData.pricePerDay} onChange={(e) => handleChange('pricePerDay', parseInt(e.target.value) || 10)} />
+                    </div>
+                    <div className="form-group">
+                        <label className="required">4-Digit PIN (to edit/delete later)</label>
+                        <input type="password" className="input" placeholder="e.g., 1234" maxLength="4" value={formData.pin} onChange={(e) => handleChange('pin', e.target.value)} />
+                        <div className="hint">Remember this PIN! You'll need it to edit or remove your listing.</div>
+                    </div>
+                    <button className="btn btn-primary" onClick={handleSubmit} disabled={loading}>
+                        {loading ? 'Adding...' : 'List My Spot'}
+                    </button>
+                </Modal>
+            );
+        };
+
+        // Rent Modal
+        const RentModal = ({ isOpen, onClose, spot, onSubmit }) => {
+            const [step, setStep] = useState(1);
+            const [rentData, setRentData] = useState({
+                fromDate: '', fromTime: '',
+                toDate: '', toTime: '',
+                name: '', email: '', phone: '',
+                screenshot: null, screenshotPreview: null
+            });
+            const [loading, setLoading] = useState(false);
+            const [result, setResult] = useState(null);
+            const [validationError, setValidationError] = useState('');
+
+            // Reset when spot changes or modal opens
+            useEffect(() => {
+                if (isOpen && spot) {
+                    setStep(1);
+                    setRentData({
+                        fromDate: spot.availableFrom,
+                        fromTime: spot.availableFromTime || '08:00',
+                        toDate: spot.availableTo,
+                        toTime: spot.availableToTime || '18:00',
+                        name: '', email: '', phone: '',
+                        screenshot: null, screenshotPreview: null
+                    });
+                    setResult(null);
+                    setValidationError('');
+                }
+            }, [isOpen, spot]);
+
+            if (!spot) return null;
+
+            // Validation logic for date/time boundaries
+            const validateDateTime = () => {
+                const { fromDate, fromTime, toDate, toTime } = rentData;
+                
+                if (!fromDate || !fromTime || !toDate || !toTime) {
+                    return 'Please fill in all date and time fields';
+                }
+                
+                // Check if from date is within spot availability
+                if (fromDate < spot.availableFrom) {
+                    return `Start date cannot be before ${formatDate(spot.availableFrom)}`;
+                }
+                if (fromDate > spot.availableTo) {
+                    return `Start date cannot be after ${formatDate(spot.availableTo)}`;
+                }
+                
+                // Check if to date is within spot availability
+                if (toDate < spot.availableFrom) {
+                    return `End date cannot be before ${formatDate(spot.availableFrom)}`;
+                }
+                if (toDate > spot.availableTo) {
+                    return `End date cannot be after ${formatDate(spot.availableTo)}`;
+                }
+                
+                // Check if from date is not after to date
+                if (fromDate > toDate) {
+                    return 'Start date cannot be after end date';
+                }
+                
+                // If start date equals spot's available from date, check start time
+                if (fromDate === spot.availableFrom && fromTime < spot.availableFromTime) {
+                    return `Start time cannot be before ${formatTime(spot.availableFromTime)} ${CONFIG.TIMEZONE} on the first available day`;
+                }
+                
+                // If end date equals spot's available to date, check end time
+                if (toDate === spot.availableTo && toTime > spot.availableToTime) {
+                    return `End time cannot be after ${formatTime(spot.availableToTime)} ${CONFIG.TIMEZONE} on the last available day`;
+                }
+                
+                // If same day rental, check that end time is after start time
+                if (fromDate === toDate && fromTime >= toTime) {
+                    return 'End time must be after start time for same-day rentals';
+                }
+                
+                // Check total hours is positive
+                const hours = hoursBetween(fromDate, fromTime, toDate, toTime);
+                if (hours <= 0) {
+                    return 'Rental period must be at least 1 hour';
+                }
+                
+                return ''; // No errors
+            };
+
+            const hours = hoursBetween(rentData.fromDate, rentData.fromTime, rentData.toDate, rentData.toTime);
+            const days = hours > 0 ? Math.ceil(hours / 24) : 0;
+            const total = days * spot.pricePerDay;
+
+            const validationMessage = validateDateTime();
+            const canProceedToStep2 = validationMessage === '';
+            const canConfirm = rentData.name && rentData.email && rentData.phone && rentData.screenshot;
+
+            const handleFileChange = async (e) => {
+                const file = e.target.files?.[0];
+                if (file) {
+                    const base64 = await fileToBase64(file);
+                    setRentData(prev => ({ ...prev, screenshot: base64, screenshotPreview: base64 }));
+                }
+            };
+
+            const clearScreenshot = () => {
+                setRentData(prev => ({ ...prev, screenshot: null, screenshotPreview: null }));
+            };
+
+            const handleConfirm = async () => {
+                setLoading(true);
+                const res = await api.rentSpot(
+                    spot.id,
+                    rentData.fromDate,
+                    rentData.fromTime,
+                    rentData.toDate,
+                    rentData.toTime,
+                    { name: rentData.name, email: rentData.email, phone: rentData.phone }
+                );
+                setLoading(false);
+
+                if (res.success) {
+                    setResult(res);
+                    setStep(3);
+                    onSubmit();
+                } else {
+                    alert('Error: ' + (res.error || 'Unknown error'));
+                }
+            };
+
+            const handleClose = () => {
+                setStep(1);
+                setResult(null);
+                onClose();
+            };
+
+            // Calculate min/max times based on selected dates
+            const getFromTimeMin = () => {
+                if (rentData.fromDate === spot.availableFrom) {
+                    return spot.availableFromTime;
+                }
+                return '00:00';
+            };
+
+            const getToTimeMax = () => {
+                if (rentData.toDate === spot.availableTo) {
+                    return spot.availableToTime;
+                }
+                return '23:59';
+            };
+
+            return (
+                <Modal isOpen={isOpen} onClose={handleClose} title={step === 3 ? '✅ Rental Confirmed!' : 'Rent Parking Spot'}>
+                    {step === 1 && (
+                        <>
+                            <div className="form-group">
+                                <label className="required">Select your rental period</label>
+                                <p style={{ fontSize: '12px', color: 'var(--text-tertiary)', marginBottom: '12px' }}>
+                                    Spot available: {formatDate(spot.availableFrom)} {formatTimeWithTZ(spot.availableFromTime)} → {formatDate(spot.availableTo)} {formatTimeWithTZ(spot.availableToTime)}
+                                </p>
+                                <div className="form-row">
+                                    <div>
+                                        <div className="hint" style={{ marginBottom: '4px', marginTop: 0 }}>FROM DATE *</div>
+                                        <input 
+                                            type="date" 
+                                            className="input" 
+                                            min={spot.availableFrom} 
+                                            max={spot.availableTo} 
+                                            value={rentData.fromDate} 
+                                            onChange={(e) => setRentData(prev => ({ 
+                                                ...prev, 
+                                                fromDate: e.target.value,
+                                                // Reset time if date changes to boundary date
+                                                fromTime: e.target.value === spot.availableFrom ? spot.availableFromTime : prev.fromTime
+                                            }))} 
+                                        />
+                                        <div className="hint" style={{ marginBottom: '4px', marginTop: '12px' }}>START TIME *</div>
+                                        <input 
+                                            type="time" 
+                                            className="input" 
+                                            min={getFromTimeMin()}
+                                            value={rentData.fromTime} 
+                                            onChange={(e) => setRentData(prev => ({ ...prev, fromTime: e.target.value }))} 
+                                        />
+                                        <div className="timezone-hint">{CONFIG.TIMEZONE}</div>
+                                        {rentData.fromDate === spot.availableFrom && (
+                                            <div className="timezone-hint" style={{ color: 'var(--accent-primary)' }}>
+                                                Min: {formatTime(spot.availableFromTime)}
+                                            </div>
+                                        )}
+                                    </div>
+                                    <div>
+                                        <div className="hint" style={{ marginBottom: '4px', marginTop: 0 }}>TO DATE *</div>
+                                        <input 
+                                            type="date" 
+                                            className="input" 
+                                            min={rentData.fromDate || spot.availableFrom} 
+                                            max={spot.availableTo} 
+                                            value={rentData.toDate} 
+                                            onChange={(e) => setRentData(prev => ({ 
+                                                ...prev, 
+                                                toDate: e.target.value,
+                                                // Reset time if date changes to boundary date
+                                                toTime: e.target.value === spot.availableTo ? spot.availableToTime : prev.toTime
+                                            }))} 
+                                        />
+                                        <div className="hint" style={{ marginBottom: '4px', marginTop: '12px' }}>END TIME *</div>
+                                        <input 
+                                            type="time" 
+                                            className="input" 
+                                            max={getToTimeMax()}
+                                            value={rentData.toTime} 
+                                            onChange={(e) => setRentData(prev => ({ ...prev, toTime: e.target.value }))} 
+                                        />
+                                        <div className="timezone-hint">{CONFIG.TIMEZONE}</div>
+                                        {rentData.toDate === spot.availableTo && (
+                                            <div className="timezone-hint" style={{ color: 'var(--accent-primary)' }}>
+                                                Max: {formatTime(spot.availableToTime)}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="cost-box">
+                                <div className="cost-row">
+                                    <span className="label">${spot.pricePerDay} × {days} {days === 1 ? 'day' : 'days'}</span>
+                                    <span>${total}</span>
+                                </div>
+                                <div className="cost-row" style={{ fontSize: '13px' }}>
+                                    <span className="label">{hours > 0 ? `(${hours.toFixed(1)} hours total)` : ''}</span>
+                                    <span></span>
+                                </div>
+                                <div className="cost-row total">
+                                    <span className="label">Total</span>
+                                    <span className="value">${total}</span>
+                                </div>
+                            </div>
+                            <div className="venmo-box">
+                                <div className="label">Send payment via Venmo to:</div>
+                                <div className="handle">{spot.venmo}</div>
+                            </div>
+                            <button className="btn btn-primary" onClick={() => setStep(2)} disabled={!canProceedToStep2}>
+                                I've Sent the Payment →
+                            </button>
+                            {validationMessage && (
+                                <div className="error-msg" style={{ textAlign: 'center', marginTop: '8px' }}>
+                                    {validationMessage}
+                                </div>
+                            )}
+                        </>
+                    )}
+                    {step === 2 && (
+                        <>
+                            <div className="form-group">
+                                <label className="required">Your Name</label>
+                                <input type="text" className="input" placeholder="Your full name" value={rentData.name} onChange={(e) => setRentData(prev => ({ ...prev, name: e.target.value }))} />
+                            </div>
+                            <div className="form-row">
+                                <div className="form-group">
+                                    <label className="required">Your Email</label>
+                                    <input type="email" className="input" placeholder="you@email.com" value={rentData.email} onChange={(e) => setRentData(prev => ({ ...prev, email: e.target.value }))} />
+                                </div>
+                                <div className="form-group">
+                                    <label className="required">Your Phone</label>
+                                    <input type="tel" className="input" placeholder="(555) 123-4567" value={rentData.phone} onChange={(e) => setRentData(prev => ({ ...prev, phone: e.target.value }))} />
+                                </div>
+                            </div>
+                            <div className="form-group">
+                                <label className="required">Upload your Venmo payment screenshot</label>
+                                <div className={`upload-area ${rentData.screenshotPreview ? 'has-file' : ''}`} onClick={() => document.getElementById('screenshot-input').click()}>
+                                    <input type="file" id="screenshot-input" accept="image/*" style={{ display: 'none' }} onChange={handleFileChange} />
+                                    {rentData.screenshotPreview ? (
+                                        <img src={rentData.screenshotPreview} className="upload-preview" alt="Screenshot" />
+                                    ) : (
+                                        <>
+                                            <div className="upload-icon">📤</div>
+                                            <div className="upload-text">Click to upload screenshot</div>
+                                            <div className="upload-hint">PNG, JPG up to 10MB</div>
+                                        </>
+                                    )}
+                                </div>
+                                {rentData.screenshotPreview && (
+                                    <button className="clear-btn" onClick={clearScreenshot}>✕ Clear Image</button>
+                                )}
+                            </div>
+                            <div style={{ display: 'flex', gap: '12px' }}>
+                                <button className="btn btn-secondary" onClick={() => setStep(1)}>← Back</button>
+                                <button className="btn btn-primary" style={{ flex: 2 }} onClick={handleConfirm} disabled={!canConfirm || loading}>
+                                    {loading ? 'Processing...' : 'Confirm & Get Spot Number'}
+                                </button>
+                            </div>
+                            {!canConfirm && (
+                                <div className="error-msg" style={{ textAlign: 'center', marginTop: '8px' }}>
+                                    Please fill in all fields and upload a screenshot
+                                </div>
+                            )}
+                        </>
+                    )}
+
+                    {step === 3 && result && (
+                        <div className="success-content">
+                            <div className="success-icon">🎉</div>
+                            <div className="spot-number-reveal">
+                                <div className="label">Your parking spot number is:</div>
+                                <div className="number">{result.spotNumber}</div>
+                            </div>
+                            <div className="owner-contact">
+                                <div className="label">Owner's Phone (for questions)</div>
+                                <div className="value">{result.ownerPhone || '—'}</div>
+                            </div>
+                            <div className="owner-contact">
+                                <div className="label">Rental Period</div>
+                                <div className="value">{formatDate(rentData.fromDate)} {formatTimeWithTZ(rentData.fromTime)} → {formatDate(rentData.toDate)} {formatTimeWithTZ(rentData.toTime)}</div>
+                            </div>
+                            <p style={{ color: 'var(--text-secondary)', fontSize: '14px', marginBottom: '20px' }}>
+                                A confirmation email has been sent to you and the spot owner.
+                            </p>
+                            <button className="btn btn-secondary" onClick={handleClose}>Done</button>
+                        </div>
+                    )}
+                </Modal>
+            );
+        };
+
+        // Manage Modal
+        const ManageModal = ({ isOpen, onClose, spot, onUpdate, onDelete }) => {
+            const [step, setStep] = useState(1);
+            const [pin, setPin] = useState('');
+            const [pinError, setPinError] = useState('');
+            const [verifiedPin, setVerifiedPin] = useState(null);
+            const [formData, setFormData] = useState({});
+            const [loading, setLoading] = useState(false);
+
+            useEffect(() => {
+                if (isOpen && spot) {
+                    setStep(1);
+                    setPin('');
+                    setPinError('');
+                    setVerifiedPin(null);
+                    setFormData({
+                        venmo: spot.venmo,
+                        email: spot.email || '',
+                        phone: spot.phone || '',
+                        spotNumber: spot.spotNumber,
+                        size: spot.size || 'Full Size',
+                        floor: spot.floor || 'P1',
+                        availableFrom: spot.availableFrom,
+                        availableFromTime: spot.availableFromTime || '08:00',
+                        availableTo: spot.availableTo,
+                        availableToTime: spot.availableToTime || '18:00',
+                        pricePerDay: spot.pricePerDay
+                    });
+                }
+            }, [isOpen, spot]);
+
+            if (!spot) return null;
+
+            const handleVerifyPin = async () => {
+                if (!pin || pin.length !== 4) {
+                    setPinError('Please enter a 4-digit PIN');
+                    return;
+                }
+                setLoading(true);
+                const result = await api.verifyPin(spot.id, pin);
+                setLoading(false);
+                if (result.success) {
+                    setVerifiedPin(pin);
+                    setStep(2);
+                } else {
+                    setPinError('Incorrect PIN');
+                }
+            };
+
+            const handleSave = async () => {
+                setLoading(true);
+                const result = await api.updateSpot(spot.id, verifiedPin, formData);
+                setLoading(false);
+                if (result.success) {
+                    onUpdate();
+                    onClose();
+                    alert('Updated!');
+                } else {
+                    alert('Error: ' + (result.error || 'Unknown error'));
+                }
+            };
+
+            const handleDelete = async () => {
+                if (!confirm('Delete this listing?')) return;
+                setLoading(true);
+                const result = await api.deleteSpot(spot.id, verifiedPin);
+                setLoading(false);
+                if (result.success) {
+                    onDelete();
+                    onClose();
+                    alert('Deleted!');
+                } else {
+                    alert('Error: ' + (result.error || 'Unknown error'));
+                }
+            };
+
+            return (
+                <Modal isOpen={isOpen} onClose={onClose} title="Manage Your Listing">
+                    {step === 1 && (
+                        <>
+                            <p style={{ color: 'var(--text-secondary)', marginBottom: '20px' }}>Enter the 4-digit PIN you set when creating this listing.</p>
+                            <div className="form-group">
+                                <label>Your PIN</label>
+                                <input type="password" className="input" placeholder="Enter 4-digit PIN" maxLength="4" value={pin} onChange={(e) => { setPin(e.target.value); setPinError(''); }} onKeyPress={(e) => e.key === 'Enter' && handleVerifyPin()} />
+                                {pinError && <div className="error-msg">{pinError}</div>}
+                            </div>
+                            <button className="btn btn-primary" onClick={handleVerifyPin} disabled={loading}>
+                                {loading ? 'Verifying...' : 'Verify PIN'}
+                            </button>
+                        </>
+                    )}
+
+                    {step === 2 && (
+                        <>
+                            <div className="form-group">
+                                <label>Venmo Handle</label>
+                                <input type="text" className="input" value={formData.venmo} onChange={(e) => setFormData(prev => ({ ...prev, venmo: e.target.value }))} />
+                            </div>
+                            <div className="form-row">
+                                <div className="form-group">
+                                    <label>Email</label>
+                                    <input type="email" className="input" value={formData.email} onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))} />
+                                </div>
+                                <div className="form-group">
+                                    <label>Phone</label>
+                                    <input type="tel" className="input" value={formData.phone} onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))} />
+                                </div>
+                            </div>
+                            <div className="form-group">
+                                <label>Parking Spot Number</label>
+                                <input type="text" className="input" value={formData.spotNumber} onChange={(e) => setFormData(prev => ({ ...prev, spotNumber: e.target.value }))} />
+                            </div>
+                            <div className="form-row">
+                                <div className="form-group">
+                                    <label>Spot Size</label>
+                                    <select className="input" value={formData.size} onChange={(e) => setFormData(prev => ({ ...prev, size: e.target.value }))}>
+                                        <option value="Full Size">Full Size</option>
+                                        <option value="Compact">Compact</option>
+                                        <option value="Motorcycle">Motorcycle</option>
+                                    </select>
+                                </div>
+                                <div className="form-group">
+                                    <label>Floor</label>
+                                    <select className="input" value={formData.floor} onChange={(e) => setFormData(prev => ({ ...prev, floor: e.target.value }))}>
+                                        <option value="P1">P1</option>
+                                        <option value="P2">P2</option>
+                                        <option value="P3">P3</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div className="form-row">
+                                <div className="form-group">
+                                    <label>Available From</label>
+                                    <input type="date" className="input" value={formData.availableFrom} onChange={(e) => setFormData(prev => ({ ...prev, availableFrom: e.target.value }))} />
+                                    <input type="time" className="input" style={{ marginTop: '8px' }} value={formData.availableFromTime} onChange={(e) => setFormData(prev => ({ ...prev, availableFromTime: e.target.value }))} />
+                                    <div className="timezone-hint">{CONFIG.TIMEZONE}</div>
+                                </div>
+                                <div className="form-group">
+                                    <label>Available To</label>
+                                    <input type="date" className="input" value={formData.availableTo} onChange={(e) => setFormData(prev => ({ ...prev, availableTo: e.target.value }))} />
+                                    <input type="time" className="input" style={{ marginTop: '8px' }} value={formData.availableToTime} onChange={(e) => setFormData(prev => ({ ...prev, availableToTime: e.target.value }))} />
+                                    <div className="timezone-hint">{CONFIG.TIMEZONE}</div>
+                                </div>
+                            </div>
+                            <div className="form-group">
+                                <label>Price Per Day ($)</label>
+                                <input type="number" className="input" value={formData.pricePerDay} onChange={(e) => setFormData(prev => ({ ...prev, pricePerDay: parseInt(e.target.value) || 10 }))} />
+                            </div>
+                            <div style={{ display: 'flex', gap: '12px' }}>
+                                <button className="btn btn-danger" style={{ width: 'auto', padding: '14px 20px' }} onClick={handleDelete} disabled={loading}>🗑️ Delete</button>
+                                <button className="btn btn-primary" style={{ flex: 1 }} onClick={handleSave} disabled={loading}>
+                                    {loading ? 'Saving...' : 'Save Changes'}
+                                </button>
+                            </div>
+                        </>
+                    )}
+                </Modal>
+            );
+        };
+
+        // Main Dashboard Component
+        const Dashboard = ({ onLogout }) => {
+            const [spots, setSpots] = useState([]);
+            const [loading, setLoading] = useState(true);
+            const [filters, setFilters] = useState({ date: '', venmo: '', size: '', floor: '' });
+            const [sortBy, setSortBy] = useState('random');
+            const [addModalOpen, setAddModalOpen] = useState(false);
+            const [rentModalOpen, setRentModalOpen] = useState(false);
+            const [manageModalOpen, setManageModalOpen] = useState(false);
+            const [selectedSpot, setSelectedSpot] = useState(null);
+
+            const loadSpots = useCallback(async () => {
+                setLoading(true);
+                const data = await api.fetchSpots();
+                setSpots(data);
+                setLoading(false);
+            }, []);
+
+            useEffect(() => {
+                loadSpots();
+            }, [loadSpots]);
+
+            const filteredSpots = React.useMemo(() => {
+                let result = spots.filter(s => s.status === 'available');
+
+                if (filters.date) {
+                    result = result.filter(s => isDateInRange(filters.date, s.availableFrom, s.availableTo));
+                }
+                if (filters.venmo) {
+                    result = result.filter(s => s.venmo.toLowerCase().includes(filters.venmo.toLowerCase()));
+                }
+                if (filters.size) {
+                    result = result.filter(s => s.size === filters.size);
+                }
+                if (filters.floor) {
+                    result = result.filter(s => s.floor === filters.floor);
+                }
+
+                switch (sortBy) {
+                    case 'soonest':
+                        result.sort((a, b) => new Date(a.availableFrom) - new Date(b.availableFrom));
+                        break;
+                    case 'longest':
+                        result.sort((a, b) => daysBetween(b.availableFrom, b.availableTo) - daysBetween(a.availableFrom, a.availableTo));
+                        break;
+                    case 'newest':
+                        result.sort((a, b) => parseInt(b.id) - parseInt(a.id));
+                        break;
+                    default:
+                        // Random - shuffle based on a seed
+                        result = [...result].sort(() => Math.random() - 0.5);
+                }
+
+                return result;
+            }, [spots, filters, sortBy]);
+
+            const hasFilters = filters.date || filters.venmo || filters.size || filters.floor;
+
+            const clearFilters = () => {
+                setFilters({ date: '', venmo: '', size: '', floor: '' });
+            };
+
+            const handleRent = (spot) => {
+                setSelectedSpot(spot);
+                setRentModalOpen(true);
+            };
+
+            const handleManage = (spot) => {
+                setSelectedSpot(spot);
+                setManageModalOpen(true);
+            };
+
+            return (
+                <div className="dashboard active">
+                    <header>
+                        <div className="logo">
+                            <div className="logo-sm">🚗</div>
+                            <h1>The Palms Parking</h1>
+                        </div>
+                        <button className="btn btn-primary" style={{ width: 'auto', padding: '10px 20px' }} onClick={() => setAddModalOpen(true)}>
+                            + List Your Spot
+                        </button>
+                    </header>
+
+                    <main className="main">
+                        <div className="filters">
+                            <div className="filter-group">
+                                <label>Search by date</label>
+                                <input type="date" className="input" min={getTodayString()} value={filters.date} onChange={(e) => setFilters(prev => ({ ...prev, date: e.target.value }))} />
+                            </div>
+                            <div className="filter-group">
+                                <label>Search by Venmo</label>
+                                <input type="text" className="input" placeholder="@username" value={filters.venmo} onChange={(e) => setFilters(prev => ({ ...prev, venmo: e.target.value }))} />
+                            </div>
+                            <div className="filter-group" style={{ minWidth: '130px' }}>
+                                <label>Spot Size</label>
+                                <select className="input" value={filters.size} onChange={(e) => setFilters(prev => ({ ...prev, size: e.target.value }))}>
+                                    <option value="">All Sizes</option>
+                                    <option value="Full Size">Full Size</option>
+                                    <option value="Compact">Compact</option>
+                                    <option value="Motorcycle">Motorcycle</option>
+                                </select>
+                            </div>
+                            <div className="filter-group" style={{ minWidth: '100px' }}>
+                                <label>Floor</label>
+                                <select className="input" value={filters.floor} onChange={(e) => setFilters(prev => ({ ...prev, floor: e.target.value }))}>
+                                    <option value="">All</option>
+                                    <option value="P1">P1</option>
+                                    <option value="P2">P2</option>
+                                    <option value="P3">P3</option>
+                                </select>
+                            </div>
+                            <div className="filter-group" style={{ minWidth: '150px' }}>
+                                <label>Sort by</label>
+                                <select className="input" value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
+                                    <option value="random">Random</option>
+                                    <option value="soonest">Soonest Available</option>
+                                    <option value="longest">Longest Duration</option>
+                                    <option value="newest">Newest First</option>
+                                </select>
+                            </div>
+                            {hasFilters && (
+                                <button className="btn btn-secondary" style={{ width: 'auto', padding: '12px 16px' }} onClick={clearFilters}>Clear</button>
+                            )}
+                        </div>
+
+                        <div className="results-count">
+                            {filteredSpots.length} {filteredSpots.length === 1 ? 'spot' : 'spots'} available
+                            {filters.date && ` on ${formatDate(filters.date)}`}
+                        </div>
+
+                        {loading ? (
+                            <div className="loading">
+                                <div className="spinner"></div>
+                                <div>Loading available spots...</div>
+                            </div>
+                        ) : filteredSpots.length === 0 ? (
+                            <div className="empty-state">
+                                <div className="icon">🚗</div>
+                                <div className="title">No spots available</div>
+                                <div>Check back later or list your own!</div>
+                            </div>
+                        ) : (
+                            <div className="spots-grid">
+                                {filteredSpots.map(spot => (
+                                    <SpotCard
+                                        key={spot.id}
+                                        spot={spot}
+                                        onRent={handleRent}
+                                        onManage={handleManage}
+                                    />
+                                ))}
+                            </div>
+                        )}
+                    </main>
+
+                    <AddSpotModal
+                        isOpen={addModalOpen}
+                        onClose={() => setAddModalOpen(false)}
+                        onSubmit={loadSpots}
+                    />
+
+                    <RentModal
+                        isOpen={rentModalOpen}
+                        onClose={() => { setRentModalOpen(false); setSelectedSpot(null); }}
+                        spot={selectedSpot}
+                        onSubmit={loadSpots}
+                    />
+
+                    <ManageModal
+                        isOpen={manageModalOpen}
+                        onClose={() => { setManageModalOpen(false); setSelectedSpot(null); }}
+                        spot={selectedSpot}
+                        onUpdate={loadSpots}
+                        onDelete={loadSpots}
+                    />
+                </div>
+            );
+        };
+
+        // Main App Component
+        const App = () => {
+            const [authenticated, setAuthenticated] = useState(
+                localStorage.getItem('parking_access') === 'granted'
+            );
+
+            if (!authenticated) {
+                return <AccessScreen onAccess={() => setAuthenticated(true)} />;
+            }
+
+            return <Dashboard onLogout={() => { localStorage.removeItem('parking_access'); setAuthenticated(false); }} />;
+        };
+
+        // Render the app
+        ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+    </script>
+</body>
+</html>
