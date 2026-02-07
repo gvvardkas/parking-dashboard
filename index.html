@@ -638,7 +638,7 @@
                         <div className="success-content">
                             <div className="success-icon">🎉</div>
                             <div className="spot-number-reveal"><div className="label">Your parking spot number is:</div><div className="number">{result.spotNumber}</div></div>
-                            <div className="owner-contact"><div className="label">Owner's Phone (for questions)</div><div className="value">{result.ownerPhone || '—'}</div></div>
+                            <div className="owner-contact"><div className="label">Owner's Phone (for questions)</div><div className="value">{result.ownerPhone ? formatPhoneNumber(result.ownerPhone) : '—'}</div></div>
                             <div className="owner-contact"><div className="label">Rental Period</div><div className="value">{formatDateTimeDisplay(startDateTime)} → {formatDateTimeDisplay(endDateTime)}</div></div>
                             <p style={{ color: 'var(--text-secondary)', fontSize: '14px', marginBottom: '20px' }}>A confirmation email has been sent to you and the spot owner.</p>
                             <button className="btn btn-secondary" onClick={handleClose}>Done</button>
