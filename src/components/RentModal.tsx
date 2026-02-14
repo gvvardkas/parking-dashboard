@@ -231,7 +231,6 @@ export const RentModal: React.FC<RentModalProps> = ({ isOpen, onClose, spot, onS
     const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
 
     if (isMobile) {
-      console.log(`isMobile: ${isMobile}, ${navigator.userAgent}`)
       const deeplink = `venmo://paycharge?txn=pay&recipients=${handle}&amount=${total}&note=${encodeURIComponent(noteText)}`
       window.location.href = deeplink
     } else {
