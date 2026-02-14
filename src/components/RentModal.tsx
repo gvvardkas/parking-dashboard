@@ -223,12 +223,21 @@ export const RentModal: React.FC<RentModalProps> = ({ isOpen, onClose, spot, onS
     onClose();
   };
 
-  const payVenmoUrl = () => {
+  const handlePayVenmo = () => {
     const handle = spot.venmo.replace('@', '')
     const formattedStart = formatDateTimeDisplay(startDateTime)
     const formattedEnd = formatDateTimeDisplay(endDateTime)
-    const note = encodeURIComponent(`Parking Spot Rental: ${formattedStart} → ${formattedEnd}`)
-    return `https://venmo.com/${handle}?txn=pay&amount=${total}&note=${note}`
+    const noteText = `Parking Spot Rental: ${formattedStart} → ${formattedEnd}`
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)
+
+    if (isMobile) {
+      console.log(`isMobile: ${isMobile}, ${navigator.userAgent}`)
+      const deeplink = `venmo://paycharge?txn=pay&recipients=${handle}&amount=${total}&note=${encodeURIComponent(noteText)}`
+      window.location.href = deeplink
+    } else {
+      const webUrl = `https://venmo.com/${handle}?txn=pay&amount=${total}&note=${encodeURIComponent(noteText)}`
+      window.open(webUrl, '_blank')
+    }
   };
 
   // Determine minimum date for rental start (today in PST or spot start date, whichever is later)
@@ -319,15 +328,13 @@ export const RentModal: React.FC<RentModalProps> = ({ isOpen, onClose, spot, onS
                 {copied ? '✓' : '📋'}
               </button>
             </div>
-            <a
-              href={payVenmoUrl()}
+            <button
+              onClick={handlePayVenmo}
               className="btn btn-secondary"
-              style={{ marginTop: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', textDecoration: 'none' }}
-              target="_blank"
-              rel="noopener noreferrer"
+              style={{ marginTop: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
             >
               💳 Open in Venmo
-            </a>
+            </button>
           </div>
           <button className="btn btn-primary" onClick={() => setStep(2)} disabled={!canProceedToStep2}>
             I've Sent the Payment →
