@@ -311,6 +311,19 @@ export const RentModal: React.FC<RentModalProps> = ({ isOpen, onClose, spot, onS
                 {copied ? '✓' : '📋'}
               </button>
             </div>
+            <a
+              href={`venmo://paycharge?txn=pay&recipients=${spot.venmo.replace('@', '')}&amount=${total}&note=Parking%20Spot%20${encodeURIComponent(spotFrom.date)}%20to%20${encodeURIComponent(spotTo.date)}`}
+              className="btn btn-secondary"
+              style={{ marginTop: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', textDecoration: 'none' }}
+              onClick={(e) => {
+                // If venmo:// doesn't work, fall back to web
+                setTimeout(() => {
+                  window.open(`https://venmo.com/${spot.venmo.replace('@', '')}`, '_blank');
+                }, 500);
+              }}
+            >
+              💳 Open in Venmo
+            </a>
           </div>
           <button className="btn btn-primary" onClick={() => setStep(2)} disabled={!canProceedToStep2}>
             I've Sent the Payment →
