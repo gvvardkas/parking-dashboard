@@ -51,6 +51,7 @@ export const api = {
     spotNumber: string;
     size: string;
     floor: string;
+    notes: string;
     availableFrom: string;
     availableTo: string;
     pricePerDay: number;
