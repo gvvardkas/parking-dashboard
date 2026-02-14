@@ -3,7 +3,7 @@ import { Modal } from './Modal';
 import { DateTimeInput } from './DateTimeInput';
 import { Spot, RentalData } from '../types';
 import { api } from '../services/api';
-import { parseDateTime, combineDateTime, formatDateTimeDisplay, hoursBetween } from '../utils/dateTime';
+import { parseDateTime, combineDateTime, formatDateTimeDisplay, hoursBetween, isDateTimeInPastPST, getMinTimeForDatePST, getNowInPST } from '../utils/dateTime';
 import { isValidEmail, isValidPhone } from '../utils/validation';
 import { formatPhoneNumber } from '../utils/formatting';
 import { fileToBase64 } from '../utils/helpers';
@@ -38,9 +38,30 @@ export const RentModal: React.FC<RentModalProps> = ({ isOpen, onClose, spot, onS
   useEffect(() => {
     if (isOpen && spot) {
       setStep(1);
+      
+      // Get current PST time to determine initial rental start
+      const nowPST = getNowInPST();
+      const spotStartDate = spotFrom.date;
+      const spotStartTime = spotFrom.time;
+      
+      // Determine initial from date/time
+      // If spot starts in the future, use spot start time
+      // If spot starts today or in the past, use current PST time (or spot start if it's later today)
+      let initialFromDate = spotStartDate;
+      let initialFromTime = spotStartTime;
+      
+      if (spotStartDate < nowPST.date) {
+        // Spot started in the past, use today
+        initialFromDate = nowPST.date;
+        initialFromTime = nowPST.time;
+      } else if (spotStartDate === nowPST.date && spotStartTime < nowPST.time) {
+        // Spot started earlier today, use current time
+        initialFromTime = nowPST.time;
+      }
+      
       setRentData({
-        fromDate: spotFrom.date,
-        fromTime: spotFrom.time,
+        fromDate: initialFromDate,
+        fromTime: initialFromTime,
         toDate: spotTo.date,
         toTime: spotTo.time,
         name: '',
@@ -61,6 +82,12 @@ export const RentModal: React.FC<RentModalProps> = ({ isOpen, onClose, spot, onS
   const validateRental = (): string => {
     if (!rentData.fromDate || !rentData.fromTime || !rentData.toDate || !rentData.toTime)
       return 'Please fill in all date and time fields';
+    
+    // NEW: Check if rental start is in the past (PST)
+    if (isDateTimeInPastPST(rentData.fromDate, rentData.fromTime)) {
+      return 'Rental start time cannot be in the past (PST timezone)';
+    }
+    
     const start = new Date(startDateTime);
     const end = new Date(endDateTime);
     const spotStart = new Date(spot.availableFrom);
@@ -97,7 +124,27 @@ export const RentModal: React.FC<RentModalProps> = ({ isOpen, onClose, spot, onS
     isValidEmail(rentData.email) &&
     isValidPhone(rentData.phone);
 
-  const getFromTimeMin = () => (rentData.fromDate === spotFrom.date ? spotFrom.time : undefined);
+  // Get minimum time constraints
+  const getFromTimeMin = () => {
+    const nowPST = getNowInPST();
+    
+    // If selected date is today in PST, minimum time is current PST time
+    if (rentData.fromDate === nowPST.date) {
+      // Return the later of: current PST time or spot start time (if spot starts today)
+      if (spotFrom.date === nowPST.date && spotFrom.time > nowPST.time) {
+        return spotFrom.time;
+      }
+      return nowPST.time;
+    }
+    
+    // If selected date is the spot's start date (and not today), use spot start time
+    if (rentData.fromDate === spotFrom.date) {
+      return spotFrom.time;
+    }
+    
+    return undefined;
+  };
+  
   const getToTimeMax = () => (rentData.toDate === spotTo.date ? spotTo.time : undefined);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -124,7 +171,7 @@ export const RentModal: React.FC<RentModalProps> = ({ isOpen, onClose, spot, onS
       name: rentData.name,
       email: rentData.email,
       phone: rentData.phone,
-      screenshot: rentData.screenshot  // <-- Added this line!
+      screenshot: rentData.screenshot  // <-- Screenshot is now included!
     });
     
     setLoading(false);
@@ -176,6 +223,10 @@ export const RentModal: React.FC<RentModalProps> = ({ isOpen, onClose, spot, onS
     onClose();
   };
 
+  // Determine minimum date for rental start (today in PST or spot start date, whichever is later)
+  const nowPST = getNowInPST();
+  const minFromDate = spotFrom.date > nowPST.date ? spotFrom.date : nowPST.date;
+
   return (
     <Modal isOpen={isOpen} onClose={handleClose} title={step === 3 ? '✅ Rental Confirmed!' : 'Rent Parking Spot'}>
       {step === 1 && (
@@ -187,6 +238,12 @@ export const RentModal: React.FC<RentModalProps> = ({ isOpen, onClose, spot, onS
             <div className="label">Available To:</div>
             <div className="value">{formatDateTimeDisplay(spot.availableTo)}</div>
           </div>
+          {spot.notes && (
+            <div className="availability-info" style={{ background: 'var(--accent-light)' }}>
+              <div className="label">Owner's Note</div>
+              <div className="value">{spot.notes}</div>
+            </div>
+          )}
           <DateTimeInput
             label="Rental Start"
             required
@@ -200,10 +257,10 @@ export const RentModal: React.FC<RentModalProps> = ({ isOpen, onClose, spot, onS
               }))
             }
             onTimeChange={(v) => setRentData(prev => ({ ...prev, fromTime: v }))}
-            minDate={spotFrom.date}
+            minDate={minFromDate}
             maxDate={spotTo.date}
             minTime={getFromTimeMin()}
-            showTimeBounds={rentData.fromDate === spotFrom.date}
+            showTimeBounds={!!getFromTimeMin()}
           />
           <DateTimeInput
             label="Rental End"
