@@ -142,9 +142,14 @@ export const api = {
   ): Promise<RentSpotResponse> {
     try {
       const session = getSession();
+      const url = CONFIG.GOOGLE_SCRIPT_URL;
+      
+      if (!url) {
+        return { success: false, error: 'API URL not configured' };
+      }
       
       // Use POST request to handle large screenshot data
-      const response = await fetch(CONFIG.GOOGLE_SCRIPT_URL, {
+      const response = await fetch(url, {
         method: 'POST',
         headers: {
           'Content-Type': 'text/plain', // Google Apps Script requires text/plain for CORS
