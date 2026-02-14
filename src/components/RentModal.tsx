@@ -3,7 +3,7 @@ import { Modal } from './Modal';
 import { DateTimeInput } from './DateTimeInput';
 import { Spot, RentalData } from '../types';
 import { api } from '../services/api';
-import { parseDateTime, combineDateTime, formatDateTimeDisplay, hoursBetween, isDateTimeInPastPST, getMinTimeForDatePST, getNowInPST } from '../utils/dateTime';
+import { parseDateTime, combineDateTime, formatDateTimeDisplay, hoursBetween, isDateTimeInPastPST, getNowInPST } from '../utils/dateTime';
 import { isValidEmail, isValidPhone } from '../utils/validation';
 import { formatPhoneNumber } from '../utils/formatting';
 import { fileToBase64 } from '../utils/helpers';
