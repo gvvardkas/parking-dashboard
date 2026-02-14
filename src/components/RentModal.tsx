@@ -118,11 +118,15 @@ export const RentModal: React.FC<RentModalProps> = ({ isOpen, onClose, spot, onS
   const handleConfirm = async () => {
     if (!canConfirm) return;
     setLoading(true);
+    
+    // FIXED: Include screenshot in the renterInfo object
     const res = await api.rentSpot(spot.id, startDateTime, endDateTime, {
       name: rentData.name,
       email: rentData.email,
-      phone: rentData.phone
+      phone: rentData.phone,
+      screenshot: rentData.screenshot  // <-- Added this line!
     });
+    
     setLoading(false);
     if (res.success) {
       setResult({ spotNumber: res.spotNumber || '', ownerPhone: res.ownerPhone || '' });
