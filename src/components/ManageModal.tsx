@@ -27,6 +27,7 @@ export const ManageModal: React.FC<ManageModalProps> = ({ isOpen, onClose, spot,
     spotNumber: '',
     size: 'Full Size',
     floor: 'P1',
+    notes: '',
     fromDate: '',
     fromTime: '',
     toDate: '',
@@ -52,6 +53,7 @@ export const ManageModal: React.FC<ManageModalProps> = ({ isOpen, onClose, spot,
         spotNumber: spot.spotNumber || '',
         size: spot.size || 'Full Size',
         floor: spot.floor || 'P1',
+        notes: spot.notes || '',
         fromDate: from.date,
         fromTime: from.time,
         toDate: to.date,
@@ -260,6 +262,17 @@ export const ManageModal: React.FC<ManageModalProps> = ({ isOpen, onClose, spot,
                 <option value="P3">P3</option>
               </select>
             </div>
+          </div>
+          <div className="form-group">
+            <label>Notes (optional)</label>
+            <input
+              type="text"
+              className="input"
+              placeholder="e.g., Near elevator, Covered spot, Easy access"
+              value={formData.notes}
+              onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
+            />
+            <div className="hint">Add any helpful details for renters</div>
           </div>
           <DateTimeInput
             label="Available From"
