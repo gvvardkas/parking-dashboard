@@ -315,7 +315,7 @@ export const RentModal: React.FC<RentModalProps> = ({ isOpen, onClose, spot, onS
               href={`venmo://paycharge?txn=pay&recipients=${spot.venmo.replace('@', '')}&amount=${total}&note=Parking%20Spot%20${encodeURIComponent(spotFrom.date)}%20to%20${encodeURIComponent(spotTo.date)}`}
               className="btn btn-secondary"
               style={{ marginTop: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', textDecoration: 'none' }}
-              onClick={(e) => {
+              onClick={() => {
                 // If venmo:// doesn't work, fall back to web
                 setTimeout(() => {
                   window.open(`https://venmo.com/${spot.venmo.replace('@', '')}`, '_blank');
@@ -344,7 +344,7 @@ export const RentModal: React.FC<RentModalProps> = ({ isOpen, onClose, spot, onS
               className="input"
               placeholder="Your full name"
               value={rentData.name}
-              onChange={(e) => setRentData(prev => ({ ...prev, name: e.target.value }))}
+              onChange={() => setRentData(prev => ({ ...prev, name: e.target.value }))}
             />
           </div>
           <div className="form-row">
@@ -355,7 +355,7 @@ export const RentModal: React.FC<RentModalProps> = ({ isOpen, onClose, spot, onS
                 className={`input ${step2Errors.email ? 'error' : ''}`}
                 placeholder="you@email.com"
                 value={rentData.email}
-                onChange={(e) => setRentData(prev => ({ ...prev, email: e.target.value }))}
+                onChange={() => setRentData(prev => ({ ...prev, email: e.target.value }))}
               />
               {step2Errors.email && <div className="error-msg">{step2Errors.email}</div>}
             </div>
@@ -366,7 +366,7 @@ export const RentModal: React.FC<RentModalProps> = ({ isOpen, onClose, spot, onS
                 className={`input ${step2Errors.phone ? 'error' : ''}`}
                 placeholder="(555) 123-4567"
                 value={rentData.phone}
-                onChange={(e) => handlePhoneChange(e.target.value)}
+                onChange={() => handlePhoneChange(e.target.value)}
               />
               {step2Errors.phone && <div className="error-msg">{step2Errors.phone}</div>}
             </div>
