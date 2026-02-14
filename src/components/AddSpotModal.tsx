@@ -6,7 +6,7 @@ import { CONFIG } from '../config/constants';
 import { AddSpotFormData } from '../types';
 import { isValidEmail, isValidPhone } from '../utils/validation';
 import { formatPhoneNumber } from '../utils/formatting';
-import { combineDateTime, getTodayString } from '../utils/dateTime';
+import { combineDateTime, getTodayStringPST, isDateTimeInPastPST, getMinTimeForDatePST } from '../utils/dateTime';
 
 interface AddSpotModalProps {
   isOpen: boolean;
@@ -22,6 +22,7 @@ export const AddSpotModal: React.FC<AddSpotModalProps> = ({ isOpen, onClose, onS
     spotNumber: '',
     size: 'Full Size',
     floor: 'P1',
+    notes: '',
     fromDate: '',
     fromTime: '08:00',
     toDate: '',
@@ -71,6 +72,12 @@ export const AddSpotModal: React.FC<AddSpotModalProps> = ({ isOpen, onClose, onS
       return;
     }
 
+    // NEW: Validate that start time is not in the past (PST)
+    if (isDateTimeInPastPST(fromDate, fromTime)) {
+      alert('Start date/time cannot be in the past (PST timezone)');
+      return;
+    }
+
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       return;
@@ -91,6 +98,7 @@ export const AddSpotModal: React.FC<AddSpotModalProps> = ({ isOpen, onClose, onS
       spotNumber,
       size: formData.size,
       floor: formData.floor,
+      notes: formData.notes,
       availableFrom,
       availableTo,
       pricePerDay: formData.pricePerDay,
@@ -108,6 +116,7 @@ export const AddSpotModal: React.FC<AddSpotModalProps> = ({ isOpen, onClose, onS
         spotNumber: '',
         size: 'Full Size',
         floor: 'P1',
+        notes: '',
         fromDate: '',
         fromTime: '08:00',
         toDate: '',
@@ -121,7 +130,11 @@ export const AddSpotModal: React.FC<AddSpotModalProps> = ({ isOpen, onClose, onS
     }
   };
 
-  const today = getTodayString();
+  // Use PST-aware today string
+  const today = getTodayStringPST();
+  
+  // Get minimum time for the selected from date (only applies if date is today)
+  const fromTimeMin = getMinTimeForDatePST(formData.fromDate);
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title="List Your Spot">
@@ -197,6 +210,17 @@ export const AddSpotModal: React.FC<AddSpotModalProps> = ({ isOpen, onClose, onS
           </select>
         </div>
       </div>
+      <div className="form-group">
+        <label>Notes (optional)</label>
+        <input
+          type="text"
+          className="input"
+          placeholder="e.g., Near elevator, Covered spot, Easy access"
+          value={formData.notes}
+          onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
+        />
+        <div className="hint">Add any helpful details for renters</div>
+      </div>
       <DateTimeInput
         label="Available From"
         required
@@ -205,6 +229,8 @@ export const AddSpotModal: React.FC<AddSpotModalProps> = ({ isOpen, onClose, onS
         onDateChange={(v) => setFormData(prev => ({ ...prev, fromDate: v }))}
         onTimeChange={(v) => setFormData(prev => ({ ...prev, fromTime: v }))}
         minDate={today}
+        minTime={fromTimeMin}
+        showTimeBounds={!!fromTimeMin}
       />
       <DateTimeInput
         label="Available To"
