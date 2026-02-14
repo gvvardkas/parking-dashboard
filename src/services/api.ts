@@ -133,6 +133,7 @@ export const api = {
     }
   },
 
+  // FIXED: Use POST request for rentSpot because screenshots are too large for URL parameters
   async rentSpot(
     spotId: string,
     startDateTime: string,
@@ -141,15 +142,23 @@ export const api = {
   ): Promise<RentSpotResponse> {
     try {
       const session = getSession();
-      const params = new URLSearchParams({
-        action: 'rentSpot',
-        accessCode: session?.code || '',
-        spotId,
-        startDateTime,
-        endDateTime,
-        renterInfo: JSON.stringify(renterInfo)
+      
+      // Use POST request to handle large screenshot data
+      const response = await fetch(CONFIG.GOOGLE_SCRIPT_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'text/plain', // Google Apps Script requires text/plain for CORS
+        },
+        body: JSON.stringify({
+          action: 'rentSpot',
+          accessCode: session?.code || '',
+          spotId,
+          startDateTime,
+          endDateTime,
+          renterInfo: renterInfo // Include the full renterInfo object with screenshot
+        })
       });
-      const response = await fetch(`${CONFIG.GOOGLE_SCRIPT_URL}?${params.toString()}`);
+      
       return await response.json();
     } catch (error) {
       return { success: false, error: (error as Error).message };
