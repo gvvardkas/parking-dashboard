@@ -344,7 +344,7 @@ export const RentModal: React.FC<RentModalProps> = ({ isOpen, onClose, spot, onS
               className="input"
               placeholder="Your full name"
               value={rentData.name}
-              onChange={() => setRentData(prev => ({ ...prev, name: e.target.value }))}
+              onChange={(e) => setRentData(prev => ({ ...prev, name: e.target.value }))}
             />
           </div>
           <div className="form-row">
@@ -355,7 +355,7 @@ export const RentModal: React.FC<RentModalProps> = ({ isOpen, onClose, spot, onS
                 className={`input ${step2Errors.email ? 'error' : ''}`}
                 placeholder="you@email.com"
                 value={rentData.email}
-                onChange={() => setRentData(prev => ({ ...prev, email: e.target.value }))}
+                onChange={(e) => setRentData(prev => ({ ...prev, email: e.target.value }))}
               />
               {step2Errors.email && <div className="error-msg">{step2Errors.email}</div>}
             </div>
@@ -366,7 +366,7 @@ export const RentModal: React.FC<RentModalProps> = ({ isOpen, onClose, spot, onS
                 className={`input ${step2Errors.phone ? 'error' : ''}`}
                 placeholder="(555) 123-4567"
                 value={rentData.phone}
-                onChange={() => handlePhoneChange(e.target.value)}
+                onChange={(e) => handlePhoneChange(e.target.value)}
               />
               {step2Errors.phone && <div className="error-msg">{step2Errors.phone}</div>}
             </div>
