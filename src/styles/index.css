@@ -32,6 +32,9 @@ body { background: var(--bg-primary); min-height: 100vh; font-family: -apple-sys
 .input:focus { border-color: var(--accent-primary); box-shadow: 0 0 0 3px var(--accent-light); }
 .input::placeholder { color: var(--text-tertiary); }
 .input.error { border-color: var(--danger); }
+.input-with-prefix { position: relative; display: flex; align-items: center; }
+.input-prefix { position: absolute; left: 16px; color: var(--text-secondary); font-size: 15px; pointer-events: none; z-index: 1; }
+.input-with-prefix-field { padding-left: 32px !important; }
 select.input { cursor: pointer; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23666' d='M6 8L1 3h10z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 36px; }
 .btn { width: 100%; padding: 14px 24px; border: none; border-radius: var(--radius-sm); font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.2s ease; }
 .btn:disabled { opacity: 0.5; cursor: not-allowed; }

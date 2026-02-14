@@ -149,13 +149,16 @@ export const Dashboard: React.FC<DashboardProps> = ({ currentPage, onNavigate })
           </div>
           <div className="filter-group">
             <label>Search by Venmo</label>
-            <input
-              type="text"
-              className="input"
-              placeholder="@username"
-              value={filters.venmo}
-              onChange={(e) => setFilters(prev => ({ ...prev, venmo: e.target.value }))}
-            />
+            <div className="input-with-prefix">
+              <span className="input-prefix">@</span>
+              <input
+                type="text"
+                className="input input-with-prefix-field"
+                placeholder="username"
+                value={filters.venmo}
+                onChange={(e) => setFilters(prev => ({ ...prev, venmo: e.target.value }))}
+              />
+            </div>
           </div>
           <div className="filter-group" style={{ minWidth: '130px' }}>
             <label>Spot Size</label>
