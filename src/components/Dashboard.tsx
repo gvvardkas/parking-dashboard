@@ -3,13 +3,18 @@ import { SpotCard } from './SpotCard';
 import { AddSpotModal } from './AddSpotModal';
 import { RentModal } from './RentModal';
 import { ManageModal } from './ManageModal';
+import { FAQPage } from './FAQPage';
 import { Spot, Filters, SortBy } from '../types';
 import { api } from '../services/api';
 import { isDateInRange, daysBetween, formatDate, getTodayString } from '../utils/dateTime';
 import { shuffleArray } from '../utils/helpers';
 
+type Page = 'dashboard' | 'faq';
+
 interface DashboardProps {
   onLogout: () => void;
+  currentPage: Page;
+  onNavigate: (page: Page) => void;
 }
 
 const SORT_OPTIONS: { value: SortBy; label: string }[] = [
@@ -18,12 +23,13 @@ const SORT_OPTIONS: { value: SortBy; label: string }[] = [
   { value: 'longest', label: 'Longest Duration' }
 ];
 
-export const Dashboard: React.FC<DashboardProps> = () => {
+export const Dashboard: React.FC<DashboardProps> = ({ currentPage, onNavigate }) => {
   const [spots, setSpots] = useState<Spot[]>([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState<Filters>({ date: '', venmo: '', size: '', floor: '' });
   const [sortBy, setSortBy] = useState<SortBy>('random');
   const [shuffledOrder, setShuffledOrder] = useState<string[]>([]);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
 
   const sortByMinWidth = useMemo(() => {
     const longestLabel = Math.max(...SORT_OPTIONS.map(opt => opt.label.length));
@@ -82,19 +88,54 @@ export const Dashboard: React.FC<DashboardProps> = () => {
   return (
     <div className="dashboard active">
       <header>
-        <div className="logo">
-          <div className="logo-sm">🚗</div>
-          <h1>The Palms Parking</h1>
+        <div className="logo" onClick={() => onNavigate('dashboard')} style={{ cursor: 'pointer' }}>
+          <h1>🚗 The Palms Parking</h1>
         </div>
-        <button
-          className="btn btn-primary"
-          style={{ width: 'auto', padding: '10px 20px' }}
-          onClick={() => setAddModalOpen(true)}
-        >
-          + List Your Spot
-        </button>
+        <div className="header-nav">
+          <div className="nav-dropdown">
+            <button
+              className="nav-dropdown-trigger"
+              onClick={() => setDropdownOpen(!dropdownOpen)}
+            >
+              {currentPage === 'dashboard' ? 'Dashboard' : 'FAQ'}
+              <span className="dropdown-arrow">{dropdownOpen ? '▲' : '▼'}</span>
+            </button>
+            {dropdownOpen && (
+              <div className="nav-dropdown-menu">
+                <button
+                  className="nav-dropdown-item"
+                  onClick={() => {
+                    onNavigate('dashboard');
+                    setDropdownOpen(false);
+                  }}
+                >
+                  Dashboard
+                </button>
+                <button
+                  className="nav-dropdown-item"
+                  onClick={() => {
+                    onNavigate('faq');
+                    setDropdownOpen(false);
+                  }}
+                >
+                  FAQ
+                </button>
+              </div>
+            )}
+          </div>
+          <button
+            className="btn btn-primary"
+            style={{ width: 'auto', padding: '10px 20px' }}
+            onClick={() => setAddModalOpen(true)}
+          >
+            + List Your Spot
+          </button>
+        </div>
       </header>
-      <main className="main">
+      {currentPage === 'faq' ? (
+        <FAQPage />
+      ) : (
+        <main className="main">
         <div className="filters">
           <div className="filter-group">
             <label>Search by date</label>
@@ -173,6 +214,7 @@ export const Dashboard: React.FC<DashboardProps> = () => {
           </div>
         )}
       </main>
+      )}
       <AddSpotModal isOpen={addModalOpen} onClose={() => setAddModalOpen(false)} onSubmit={loadSpots} />
       <RentModal
         isOpen={rentModalOpen}

@@ -32,8 +32,7 @@ export const AccessScreen: React.FC<AccessScreenProps> = ({ onAccess }) => {
   return (
     <div className="access-screen">
       <div className="access-box">
-        <div className="logo-icon">🚗</div>
-        <h1>The Palms Parking</h1>
+        <h1>🚗 The Palms Parking</h1>
         <p>Enter the access code to view available spots</p>
         <input
           type="password"

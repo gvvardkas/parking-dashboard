@@ -5,9 +5,11 @@ import { getSession, clearSession, isSessionExpired } from './utils/session';
 import { api } from './services/api';
 
 type AuthState = 'loading' | 'authenticated' | 'unauthenticated';
+type Page = 'dashboard' | 'faq';
 
 export const App: React.FC = () => {
   const [authState, setAuthState] = useState<AuthState>('loading');
+  const [currentPage, setCurrentPage] = useState<Page>('dashboard');
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -49,8 +51,7 @@ export const App: React.FC = () => {
     return (
       <div className="access-screen">
         <div className="access-box">
-          <div className="logo-icon">🚗</div>
-          <h1>The Palms Parking</h1>
+          <h1>🚗 The Palms Parking</h1>
           <div className="spinner" style={{ marginTop: '20px' }}></div>
           <p style={{ marginTop: '16px' }}>Checking access...</p>
         </div>
@@ -62,5 +63,11 @@ export const App: React.FC = () => {
     return <AccessScreen onAccess={() => setAuthState('authenticated')} />;
   }
 
-  return <Dashboard onLogout={handleLogout} />;
+  return (
+    <Dashboard
+      onLogout={handleLogout}
+      currentPage={currentPage}
+      onNavigate={setCurrentPage}
+    />
+  );
 };

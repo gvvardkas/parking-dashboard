@@ -1,0 +1,1347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Palms - Parking Dashboard</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        :root {
+            --bg-primary: #fafafa;
+            --bg-secondary: #ffffff;
+            --bg-tertiary: #f5f3f0;
+            --bg-accent: #ebe8e4;
+            --text-primary: #1a1a1a;
+            --text-secondary: #666666;
+            --text-tertiary: #999999;
+            --border-color: #e5e2de;
+            --accent-primary: #2563eb;
+            --accent-hover: #1d4ed8;
+            --accent-light: #dbeafe;
+            --success: #059669;
+            --success-light: #d1fae5;
+            --danger: #dc2626;
+            --danger-light: #fee2e2;
+            --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+            --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+            --shadow-lg: 0 8px 24px rgba(0,0,0,0.12);
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: var(--bg-primary); min-height: 100vh; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; color: var(--text-primary); line-height: 1.5; }
+        .access-screen { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px; background: var(--bg-tertiary); }
+        .access-box { background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 48px; width: 100%; max-width: 400px; text-align: center; box-shadow: var(--shadow-lg); }
+        .access-box h1 { font-size: 24px; font-weight: 600; margin-bottom: 8px; }
+        .access-box p { color: var(--text-secondary); font-size: 14px; margin-bottom: 32px; }
+        .logo-icon { width: 56px; height: 56px; background: var(--accent-primary); border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; font-size: 28px; }
+        .input { width: 100%; padding: 14px 16px; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-sm); color: var(--text-primary); font-size: 15px; outline: none; transition: border-color 0.2s ease, box-shadow 0.2s ease; }
+        .input:focus { border-color: var(--accent-primary); box-shadow: 0 0 0 3px var(--accent-light); }
+        .input::placeholder { color: var(--text-tertiary); }
+        .input.error { border-color: var(--danger); }
+        select.input { cursor: pointer; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23666' d='M6 8L1 3h10z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 36px; }
+        .btn { width: 100%; padding: 14px 24px; border: none; border-radius: var(--radius-sm); font-size: 15px; font-weight: 600; cursor: pointer; transition: all 0.2s ease; }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn-primary { background: var(--accent-primary); color: #fff; }
+        .btn-primary:hover:not(:disabled) { background: var(--accent-hover); }
+        .btn-secondary { background: var(--bg-tertiary); color: var(--text-primary); border: 1px solid var(--border-color); }
+        .btn-secondary:hover:not(:disabled) { background: var(--bg-accent); }
+        .btn-danger { background: var(--danger); color: #fff; }
+        .error-msg { color: var(--danger); font-size: 13px; margin-top: 8px; }
+        .dashboard { display: none; min-height: 100vh; background: var(--bg-primary); }
+        .dashboard.active { display: block; }
+        header { background: var(--bg-secondary); border-bottom: 1px solid var(--border-color); padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
+        .logo { display: flex; align-items: center; gap: 12px; }
+        .logo-sm { width: 40px; height: 40px; background: var(--accent-primary); border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; font-size: 20px; }
+        .logo h1 { font-size: 18px; font-weight: 600; }
+        .main { max-width: 1200px; margin: 0 auto; padding: 24px; }
+        .filters { display: flex; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; align-items: flex-end; }
+        .filter-group { display: flex; flex-direction: column; gap: 6px; }
+        .filter-group label { font-size: 12px; color: var(--text-secondary); font-weight: 500; }
+        .filter-group .input { min-width: 140px; padding: 10px 12px; }
+        .results-count { color: var(--text-secondary); font-size: 14px; margin-bottom: 16px; }
+        .spots-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
+        .spot-card { background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 24px; transition: all 0.2s ease; box-shadow: var(--shadow-sm); }
+        .spot-card:hover { border-color: var(--accent-primary); box-shadow: var(--shadow-md); transform: translateY(-2px); }
+        .spot-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; }
+        .spot-badge { background: var(--success-light); color: var(--success); padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; display: inline-block; margin-bottom: 8px; }
+        .spot-venmo { color: var(--text-secondary); font-size: 13px; }
+        .spot-venmo span { color: var(--accent-primary); font-weight: 500; }
+        .spot-price { text-align: right; }
+        .spot-price .amount { font-size: 24px; font-weight: 700; color: var(--text-primary); }
+        .spot-price .period { font-size: 12px; color: var(--text-tertiary); }
+        .spot-info-row { display: flex; gap: 8px; margin-bottom: 16px; }
+        .spot-info-tag { background: var(--bg-tertiary); padding: 6px 12px; border-radius: 20px; font-size: 12px; color: var(--text-secondary); }
+        .spot-dates { display: flex; gap: 12px; align-items: flex-start; padding: 16px; background: var(--bg-tertiary); border-radius: var(--radius-md); margin-bottom: 16px; }
+        .spot-dates-icon { font-size: 24px; }
+        .spot-dates-label { font-size: 11px; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.5px; }
+        .spot-dates-value { font-size: 14px; color: var(--text-primary); font-weight: 500; margin-bottom: 4px; }
+        .spot-dates-time { font-size: 12px; color: var(--text-secondary); }
+        .spot-btn { width: 100%; padding: 12px; border: none; border-radius: var(--radius-sm); font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s ease; background: var(--accent-primary); color: #fff; margin-bottom: 8px; }
+        .spot-btn:hover { background: var(--accent-hover); }
+        .spot-btn.manage-btn { background: var(--bg-tertiary); color: var(--text-secondary); border: 1px solid var(--border-color); margin-bottom: 0; }
+        .spot-btn.manage-btn:hover { background: var(--bg-accent); }
+        .loading { text-align: center; padding: 60px 20px; color: var(--text-secondary); }
+        .spinner { width: 40px; height: 40px; border: 3px solid var(--border-color); border-top-color: var(--accent-primary); border-radius: 50%; margin: 0 auto 16px; animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .empty-state { text-align: center; padding: 60px 20px; color: var(--text-secondary); }
+        .empty-state .icon { font-size: 48px; margin-bottom: 16px; }
+        .empty-state .title { font-size: 18px; font-weight: 600; color: var(--text-primary); margin-bottom: 8px; }
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 20px; opacity: 0; visibility: hidden; transition: all 0.2s ease; }
+        .modal-overlay.active { opacity: 1; visibility: visible; }
+        .modal { background: var(--bg-secondary); border-radius: var(--radius-lg); width: 100%; max-width: 500px; max-height: 90vh; overflow: auto; box-shadow: var(--shadow-lg); }
+        .modal-header { padding: 20px 24px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; }
+        .modal-header h2 { font-size: 18px; font-weight: 600; }
+        .modal-close { background: var(--bg-tertiary); border: none; border-radius: var(--radius-sm); width: 32px; height: 32px; color: var(--text-secondary); cursor: pointer; font-size: 18px; }
+        .modal-close:hover { background: var(--bg-accent); }
+        .modal-body { padding: 24px; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; color: var(--text-secondary); font-size: 13px; font-weight: 500; margin-bottom: 8px; }
+        .form-group label.required::after { content: ' *'; color: var(--danger); }
+        .form-group .hint { color: var(--text-tertiary); font-size: 12px; margin-top: 6px; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .datetime-input { display: flex; gap: 8px; }
+        .datetime-input input[type="date"] { flex: 1.2; }
+        .datetime-input input[type="time"] { flex: 1; }
+        .timezone-badge { display: inline-block; background: var(--accent-light); color: var(--accent-primary); font-size: 10px; font-weight: 600; padding: 2px 6px; border-radius: 4px; margin-left: 8px; }
+        .cost-box { background: var(--bg-tertiary); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 20px; margin-bottom: 24px; }
+        .cost-row { display: flex; justify-content: space-between; margin-bottom: 12px; color: var(--text-secondary); }
+        .cost-row.total { border-top: 1px solid var(--border-color); padding-top: 12px; margin-bottom: 0; }
+        .cost-row.total .label { color: var(--text-primary); font-weight: 600; }
+        .cost-row.total .value { color: var(--accent-primary); font-weight: 700; font-size: 20px; }
+        .venmo-box { background: var(--accent-light); border-radius: var(--radius-md); padding: 16px; margin-bottom: 24px; text-align: center; }
+        .venmo-box .label { color: var(--text-secondary); font-size: 12px; margin-bottom: 8px; }
+        .venmo-box .handle { color: var(--accent-primary); font-size: 18px; font-weight: 600; }
+        .upload-area { border: 2px dashed var(--border-color); border-radius: var(--radius-md); padding: 32px; text-align: center; cursor: pointer; transition: all 0.2s ease; }
+        .upload-area:hover { border-color: var(--accent-primary); background: var(--accent-light); }
+        .upload-area.has-file { border-style: solid; border-color: var(--success); background: var(--success-light); }
+        .upload-icon { font-size: 32px; margin-bottom: 12px; }
+        .upload-text { color: var(--text-primary); margin-bottom: 4px; }
+        .upload-hint { color: var(--text-tertiary); font-size: 13px; }
+        .upload-preview { max-width: 100%; max-height: 200px; border-radius: var(--radius-sm); }
+        .clear-btn { margin-top: 12px; padding: 8px 16px; background: var(--bg-secondary); border: 1px solid var(--danger); border-radius: var(--radius-sm); color: var(--danger); font-size: 13px; cursor: pointer; }
+        .clear-btn:hover { background: var(--danger-light); }
+        .success-content { text-align: center; padding: 20px 0; }
+        .success-icon { width: 80px; height: 80px; background: var(--success); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px; font-size: 40px; }
+        .spot-number-reveal { background: var(--accent-primary); border-radius: var(--radius-lg); padding: 24px; margin-bottom: 24px; }
+        .spot-number-reveal .label { color: rgba(255,255,255,0.8); font-size: 14px; margin-bottom: 8px; }
+        .spot-number-reveal .number { color: #fff; font-size: 48px; font-weight: 700; letter-spacing: 2px; }
+        .owner-contact { background: var(--bg-tertiary); border-radius: var(--radius-md); padding: 16px; margin-bottom: 16px; text-align: center; }
+        .owner-contact .label { font-size: 12px; color: var(--text-tertiary); margin-bottom: 4px; }
+        .owner-contact .value { font-size: 16px; font-weight: 600; color: var(--text-primary); }
+        .availability-info { background: var(--bg-tertiary); border-radius: var(--radius-sm); padding: 12px; margin-bottom: 16px; font-size: 13px; }
+        .availability-info .label { color: var(--text-tertiary); font-size: 11px; text-transform: uppercase; margin-bottom: 4px; }
+        .availability-info .value { color: var(--text-primary); font-weight: 500; }
+        .header-nav { display: flex; align-items: center; gap: 12px; }
+        .nav-link { background: none; border: none; color: var(--text-secondary); font-size: 14px; font-weight: 500; cursor: pointer; padding: 8px 12px; border-radius: var(--radius-sm); transition: all 0.2s ease; }
+        .nav-link:hover { background: var(--bg-tertiary); color: var(--text-primary); }
+        .nav-link.active { background: var(--accent-light); color: var(--accent-primary); }
+        .faq-page { max-width: 800px; margin: 0 auto; padding: 24px; }
+        .faq-header { margin-bottom: 32px; }
+        .faq-header h2 { font-size: 28px; font-weight: 700; margin-bottom: 8px; }
+        .faq-header p { color: var(--text-secondary); font-size: 16px; }
+        .faq-section { margin-bottom: 32px; }
+        .faq-section h3 { font-size: 18px; font-weight: 600; margin-bottom: 16px; color: var(--accent-primary); }
+        .faq-item { background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-md); margin-bottom: 12px; overflow: hidden; }
+        .faq-question { padding: 16px 20px; font-weight: 600; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: background 0.2s ease; }
+        .faq-question:hover { background: var(--bg-tertiary); }
+        .faq-answer { padding: 0 20px 16px; color: var(--text-secondary); line-height: 1.7; }
+        .faq-answer ul { margin: 12px 0; padding-left: 24px; }
+        .faq-answer li { margin-bottom: 8px; }
+        .faq-answer strong { color: var(--text-primary); }
+        
+        /* Mobile styles */
+        @media (max-width: 768px) {
+            header { flex-direction: column; gap: 12px; position: sticky; top: 0; }
+            .header-nav { width: 100%; justify-content: space-between; }
+            .header-nav .btn { padding: 8px 12px; font-size: 13px; }
+            .nav-link { padding: 6px 10px; font-size: 13px; }
+            .logo h1 { font-size: 16px; }
+            .main { padding: 16px; }
+            .filters { gap: 12px; flex-direction: column; width: 100%; max-width: 100%; overflow: hidden; }
+            .filters .filter-group { width: 100%; max-width: 100%; box-sizing: border-box; }
+            .filters .filter-group .input { width: 100%; max-width: 100%; min-width: unset; box-sizing: border-box; text-align: left; }
+            .filter-row-mobile { display: flex; gap: 8px; width: 100%; max-width: 100%; }
+            .filter-row-mobile .filter-group { flex: 1; width: auto; min-width: 0; }
+            .spots-grid { grid-template-columns: 1fr; }
+            .form-row { grid-template-columns: 1fr; }
+            .faq-page { padding: 16px; }
+            .faq-header h2 { font-size: 22px; }
+            .faq-answer ol, .faq-answer ul { padding-left: 28px; }
+            .btn-clear-filter { width: 100%; }
+            .modal { max-height: 90vh; margin: 20px; }
+            .access-box { padding: 32px 24px; }
+        }
+        
+        /* Desktop: filter-row-mobile should not constrain layout */
+        @media (min-width: 769px) {
+            .filter-row-mobile { display: contents; }
+        }
+        
+        /* Clear filter button - more prominent */
+        .btn-clear-filter { 
+            background: var(--danger-light); 
+            color: var(--danger); 
+            border: 1px solid var(--danger); 
+            font-weight: 600;
+            padding: 10px 16px;
+        }
+        .btn-clear-filter:hover { 
+            background: var(--danger); 
+            color: #fff; 
+        }
+        
+        /* FAQ Toggle Styles */
+        .faq-section-toggle { background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-md); margin-bottom: 16px; overflow: hidden; }
+        .faq-section-header { padding: 16px 20px; font-size: 16px; font-weight: 600; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: background 0.2s ease; color: var(--accent-primary); }
+        .faq-section-header:hover { background: var(--bg-tertiary); }
+        .faq-section-header .toggle-icon { font-size: 12px; transition: transform 0.2s ease; }
+        .faq-section-header.open .toggle-icon { transform: rotate(180deg); }
+        .faq-section-content { padding: 0 20px 16px; }
+        .faq-section-content.collapsed { display: none; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+    <script type="text/babel">
+        const { useState, useEffect, useCallback, useMemo } = React;
+
+        const CONFIG = {
+            GOOGLE_SCRIPT_URL: '', // PUT YOUR GOOGLE SCRIPT URL HERE
+            PRICE_PER_DAY: 10,
+            TIMEZONE: 'PST',
+            SESSION_DURATION_DAYS: 7
+        };
+
+        const MOCK_DATA = [
+            { id: '1', venmo: '@john-doe', email: 'john@email.com', phone: '555-123-4567', spotNumber: 'A-142', availableFrom: '2026-02-05T08:00:00', availableTo: '2026-02-20T18:00:00', pricePerDay: 10, status: 'available', pin: '1234', size: 'Full Size', floor: 'P1' },
+            { id: '2', venmo: '@jane-smith', email: 'jane@email.com', phone: '555-234-5678', spotNumber: 'B-88', availableFrom: '2026-02-06T09:00:00', availableTo: '2026-02-15T17:00:00', pricePerDay: 10, status: 'available', pin: '5678', size: 'Compact', floor: 'P2' },
+        ];
+
+        // Parse datetime and extract date/time parts in PST timezone
+        const parseDateTime = (isoString) => {
+            if (!isoString) return { date: '', time: '' };
+            const dt = new Date(isoString);
+            if (isNaN(dt.getTime())) return { date: '', time: '' };
+            
+            // Use Intl.DateTimeFormat for reliable timezone conversion
+            const formatter = new Intl.DateTimeFormat('en-CA', {
+                timeZone: 'America/Los_Angeles',
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: false
+            });
+            
+            const parts = formatter.formatToParts(dt);
+            const get = (type) => parts.find(p => p.type === type)?.value || '';
+            
+            const year = get('year');
+            const month = get('month');
+            const day = get('day');
+            let hour = get('hour');
+            const minute = get('minute');
+            
+            // Handle midnight (hour 24 -> 00)
+            if (hour === '24') hour = '00';
+            
+            return { 
+                date: `${year}-${month}-${day}`, 
+                time: `${hour}:${minute}` 
+            };
+        };
+
+        const combineDateTime = (date, time) => (!date || !time) ? '' : `${date}T${time}:00`;
+        
+        // Combine date and time with PST timezone offset for accurate comparisons
+        const combineDateTimePST = (date, time) => {
+            if (!date || !time) return '';
+            // Create the datetime string with PST offset (-08:00)
+            // Note: This assumes PST. For PDT (daylight saving), it would be -07:00
+            // For simplicity, we use -08:00 as the standard Pacific Time offset
+            return `${date}T${time}:00-08:00`;
+        };
+        
+        // Convert a PST date/time (date string YYYY-MM-DD and time string HH:MM) to a UTC-based Date
+        // for comparison with getNowInPST()
+        const dateTimePSTToUTC = (date, time) => {
+            if (!date || !time) return null;
+            const [year, month, day] = date.split('-').map(Number);
+            const [hour, minute] = time.split(':').map(Number);
+            // Create as UTC so it can be compared with getNowInPST() which also uses UTC
+            return new Date(Date.UTC(year, month - 1, day, hour, minute, 0));
+        };
+
+        const formatDate = (isoString) => {
+            if (!isoString) return '';
+            const dt = new Date(isoString);
+            if (isNaN(dt.getTime())) return '';
+            return dt.toLocaleDateString('en-US', { 
+                month: 'short', 
+                day: 'numeric', 
+                year: 'numeric',
+                timeZone: 'America/Los_Angeles'
+            });
+        };
+
+        const formatTime = (isoString) => {
+            if (!isoString) return '';
+            const dt = new Date(isoString);
+            if (isNaN(dt.getTime())) return '';
+            return dt.toLocaleTimeString('en-US', { 
+                hour: 'numeric', 
+                minute: '2-digit', 
+                hour12: true,
+                timeZone: 'America/Los_Angeles'
+            });
+        };
+
+        const formatDateTimeDisplay = (isoString) => isoString ? `${formatDate(isoString)} ${formatTime(isoString)} ${CONFIG.TIMEZONE}` : '';
+
+        // Format user-entered datetime (no timezone conversion - already in PST)
+        const formatDateTimeLocal = (isoString) => {
+            if (!isoString) return '';
+            // Parse the datetime string directly without timezone conversion
+            const [datePart, timePart] = isoString.split('T');
+            if (!datePart || !timePart) return '';
+            
+            const [year, month, day] = datePart.split('-');
+            const [hours, minutes] = timePart.split(':');
+            
+            const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const monthName = monthNames[parseInt(month) - 1];
+            
+            let hour = parseInt(hours);
+            const ampm = hour >= 12 ? 'PM' : 'AM';
+            if (hour > 12) hour -= 12;
+            if (hour === 0) hour = 12;
+            
+            return `${monthName} ${parseInt(day)}, ${year} ${hour}:${minutes} ${ampm} ${CONFIG.TIMEZONE}`;
+        };
+
+        // Get current date/time in PST as a comparable timestamp
+        const getNowInPST = () => {
+            // Get current PST date and time components
+            const now = new Date();
+            const pstFormatter = new Intl.DateTimeFormat('en-US', {
+                timeZone: 'America/Los_Angeles',
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: false
+            });
+            const parts = pstFormatter.formatToParts(now);
+            const get = (type) => parts.find(p => p.type === type)?.value || '00';
+            // Create a Date object that represents the PST time
+            // We use UTC to avoid any further timezone conversions
+            const pstAsUTC = new Date(Date.UTC(
+                parseInt(get('year')),
+                parseInt(get('month')) - 1,
+                parseInt(get('day')),
+                parseInt(get('hour')),
+                parseInt(get('minute')),
+                parseInt(get('second'))
+            ));
+            return pstAsUTC;
+        };
+
+        // Get today's date string in PST (YYYY-MM-DD)
+        const getTodayPST = () => {
+            const now = new Date();
+            const formatter = new Intl.DateTimeFormat('en-CA', {
+                timeZone: 'America/Los_Angeles',
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit'
+            });
+            return formatter.format(now);
+        };
+
+        // Get current time in PST (HH:MM)
+        const getCurrentTimePST = () => {
+            const now = new Date();
+            const formatter = new Intl.DateTimeFormat('en-US', {
+                timeZone: 'America/Los_Angeles',
+                hour: '2-digit',
+                minute: '2-digit',
+                hour12: false
+            });
+            const parts = formatter.formatToParts(now);
+            const hour = parts.find(p => p.type === 'hour')?.value || '00';
+            const minute = parts.find(p => p.type === 'minute')?.value || '00';
+            return `${hour}:${minute}`;
+        };
+
+        // Format 24-hour time (HH:MM) to 12-hour format with PST
+        const formatTimeTo12Hour = (time24) => {
+            if (!time24) return '';
+            const [hours, minutes] = time24.split(':');
+            let hour = parseInt(hours);
+            const ampm = hour >= 12 ? 'PM' : 'AM';
+            if (hour > 12) hour -= 12;
+            if (hour === 0) hour = 12;
+            return `${hour}:${minutes} ${ampm} PST`;
+        };
+
+        // Format a date string (YYYY-MM-DD) for display without timezone conversion
+        const formatDateDirect = (dateStr) => {
+            if (!dateStr) return '';
+            const [year, month, day] = dateStr.split('-');
+            const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            return `${monthNames[parseInt(month) - 1]} ${parseInt(day)}, ${year}`;
+        };
+
+        const hoursBetween = (startISO, endISO) => {
+            if (!startISO || !endISO) return 0;
+            const start = new Date(startISO), end = new Date(endISO);
+            return (isNaN(start.getTime()) || isNaN(end.getTime())) ? 0 : (end - start) / (1000 * 60 * 60);
+        };
+
+        const daysBetween = (startISO, endISO) => Math.ceil(hoursBetween(startISO, endISO) / 24);
+        const getTodayString = () => getTodayPST(); // Use PST date
+
+        // Check if a date (YYYY-MM-DD) falls within a range
+        // This compares dates only, ignoring times, and handles timezone-aware ISO strings
+        const isDateInRange = (dateStr, startISO, endISO) => {
+            // Parse the search date directly (it's already YYYY-MM-DD)
+            const [searchYear, searchMonth, searchDay] = dateStr.split('-').map(Number);
+            
+            // Parse start date - extract just the date part in PST
+            const startDate = new Date(startISO);
+            const startPST = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Los_Angeles', year: 'numeric', month: '2-digit', day: '2-digit' }).format(startDate);
+            const [startYear, startMonth, startDayNum] = startPST.split('-').map(Number);
+            
+            // Parse end date - extract just the date part in PST
+            const endDate = new Date(endISO);
+            const endPST = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Los_Angeles', year: 'numeric', month: '2-digit', day: '2-digit' }).format(endDate);
+            const [endYear, endMonth, endDayNum] = endPST.split('-').map(Number);
+            
+            // Convert to comparable numbers (YYYYMMDD)
+            const searchNum = searchYear * 10000 + searchMonth * 100 + searchDay;
+            const startNum = startYear * 10000 + startMonth * 100 + startDayNum;
+            const endNum = endYear * 10000 + endMonth * 100 + endDayNum;
+            
+            return searchNum >= startNum && searchNum <= endNum;
+        };
+
+        const fileToBase64 = (file) => new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+        });
+
+        // Email validation
+        const isValidEmail = (email) => {
+            if (!email) return false;
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return emailRegex.test(email);
+        };
+
+        // Remove spaces from email
+        const sanitizeEmail = (email) => email.replace(/\s/g, '');
+
+        // Phone number formatting - formats as (XXX) XXX-XXXX
+        const formatPhoneNumber = (value) => {
+            // Remove all non-digits
+            const digits = value.replace(/\D/g, '');
+            
+            // Limit to 10 digits
+            const limited = digits.slice(0, 10);
+            
+            // Format based on length
+            if (limited.length === 0) return '';
+            if (limited.length <= 3) return `(${limited}`;
+            if (limited.length <= 6) return `(${limited.slice(0, 3)}) ${limited.slice(3)}`;
+            return `(${limited.slice(0, 3)}) ${limited.slice(3, 6)}-${limited.slice(6)}`;
+        };
+
+        // Check if phone has 10 digits
+        const isValidPhone = (phone) => {
+            const digits = phone.replace(/\D/g, '');
+            return digits.length === 10;
+        };
+
+        // Seeded random shuffle for consistent randomization per session
+        const shuffleArray = (array) => {
+            const shuffled = [...array];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+            return shuffled;
+        };
+
+        // Session management
+        const SESSION_KEY = 'parking_session';
+        
+        const getSession = () => {
+            try {
+                const data = localStorage.getItem(SESSION_KEY);
+                if (!data) return null;
+                return JSON.parse(data);
+            } catch { return null; }
+        };
+        
+        const saveSession = (code, version) => {
+            const session = {
+                code,
+                version,
+                timestamp: Date.now()
+            };
+            localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+        };
+        
+        const clearSession = () => {
+            localStorage.removeItem(SESSION_KEY);
+        };
+        
+        const isSessionExpired = (session) => {
+            if (!session || !session.timestamp) return true;
+            const expirationMs = CONFIG.SESSION_DURATION_DAYS * 24 * 60 * 60 * 1000;
+            return Date.now() - session.timestamp > expirationMs;
+        };
+
+        const api = {
+            async validateAccess(code) {
+                if (!CONFIG.GOOGLE_SCRIPT_URL) {
+                    // For testing without backend - accept 'test' as password
+                    return code === 'test' ? { success: true, version: 1 } : { success: false, error: 'Incorrect access code' };
+                }
+                try {
+                    const params = new URLSearchParams({ action: 'validateAccess', code });
+                    const response = await fetch(`${CONFIG.GOOGLE_SCRIPT_URL}?${params.toString()}`);
+                    return await response.json();
+                } catch (error) { return { success: false, error: error.message }; }
+            },
+            async checkSession(version) {
+                if (!CONFIG.GOOGLE_SCRIPT_URL) {
+                    return { valid: version === 1 };
+                }
+                try {
+                    const params = new URLSearchParams({ action: 'checkSession', version: String(version) });
+                    const response = await fetch(`${CONFIG.GOOGLE_SCRIPT_URL}?${params.toString()}`);
+                    return await response.json();
+                } catch (error) { return { valid: false }; }
+            },
+            async fetchSpots() {
+                if (!CONFIG.GOOGLE_SCRIPT_URL) return MOCK_DATA;
+                try {
+                    const response = await fetch(CONFIG.GOOGLE_SCRIPT_URL + '?action=getSpots');
+                    const data = await response.json();
+                    return data.spots || [];
+                } catch (error) { console.error('Error fetching spots:', error); return MOCK_DATA; }
+            },
+            async addSpot(spotData) {
+                if (!CONFIG.GOOGLE_SCRIPT_URL) return { success: true, id: Date.now().toString() };
+                try {
+                    const session = getSession();
+                    const params = new URLSearchParams({ action: 'addSpot', accessCode: session?.code || '', data: JSON.stringify(spotData) });
+                    const response = await fetch(`${CONFIG.GOOGLE_SCRIPT_URL}?${params.toString()}`);
+                    return await response.json();
+                } catch (error) { return { success: false, error: error.message }; }
+            },
+            async verifyPin(spotId, pin) {
+                if (!CONFIG.GOOGLE_SCRIPT_URL) {
+                    const spot = MOCK_DATA.find(s => s.id === spotId);
+                    return (spot && spot.pin === pin) ? { success: true } : { success: false, error: 'Incorrect PIN' };
+                }
+                try {
+                    const session = getSession();
+                    const params = new URLSearchParams({ action: 'verifyPin', accessCode: session?.code || '', spotId, pin });
+                    const response = await fetch(`${CONFIG.GOOGLE_SCRIPT_URL}?${params.toString()}`);
+                    return await response.json();
+                } catch (error) { return { success: false, error: error.message }; }
+            },
+            async updateSpot(spotId, pin, spotData) {
+                if (!CONFIG.GOOGLE_SCRIPT_URL) return { success: true };
+                try {
+                    const session = getSession();
+                    const params = new URLSearchParams({ action: 'updateSpot', accessCode: session?.code || '', spotId, pin, data: JSON.stringify(spotData) });
+                    const response = await fetch(`${CONFIG.GOOGLE_SCRIPT_URL}?${params.toString()}`);
+                    return await response.json();
+                } catch (error) { return { success: false, error: error.message }; }
+            },
+            async deleteSpot(spotId, pin) {
+                if (!CONFIG.GOOGLE_SCRIPT_URL) return { success: true };
+                try {
+                    const session = getSession();
+                    const params = new URLSearchParams({ action: 'deleteSpot', accessCode: session?.code || '', spotId, pin });
+                    const response = await fetch(`${CONFIG.GOOGLE_SCRIPT_URL}?${params.toString()}`);
+                    return await response.json();
+                } catch (error) { return { success: false, error: error.message }; }
+            },
+            async rentSpot(spotId, startDateTime, endDateTime, renterInfo) {
+                if (!CONFIG.GOOGLE_SCRIPT_URL) {
+                    const spot = MOCK_DATA.find(s => s.id === spotId);
+                    return { success: true, spotNumber: spot?.spotNumber || 'A-000', ownerPhone: spot?.phone || '555-000-0000' };
+                }
+                try {
+                    const session = getSession();
+                    // Use POST request to handle large screenshot data
+                    const response = await fetch(CONFIG.GOOGLE_SCRIPT_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'text/plain' },
+                        body: JSON.stringify({
+                            action: 'rentSpot',
+                            accessCode: session?.code || '',
+                            spotId,
+                            startDateTime,
+                            endDateTime,
+                            renterInfo
+                        })
+                    });
+                    return await response.json();
+                } catch (error) { return { success: false, error: error.message }; }
+            }
+        };
+
+        const AccessScreen = ({ onAccess }) => {
+            const [code, setCode] = useState('');
+            const [error, setError] = useState('');
+            const [loading, setLoading] = useState(false);
+            
+            const handleSubmit = async () => {
+                if (!code.trim()) {
+                    setError('Please enter the access code');
+                    return;
+                }
+                setLoading(true);
+                setError('');
+                const result = await api.validateAccess(code);
+                setLoading(false);
+                
+                if (result.success) {
+                    saveSession(code, result.version);
+                    onAccess();
+                } else {
+                    setError(result.error || 'Incorrect access code');
+                }
+            };
+            
+            return (
+                <div className="access-screen">
+                    <div className="access-box">
+                        <div className="logo-icon">🚗</div>
+                        <h1>The Palms Parking</h1>
+                        <p>Enter the access code to view available spots</p>
+                        <input 
+                            type="password" 
+                            className={`input ${error ? 'error' : ''}`} 
+                            placeholder="Enter access code" 
+                            value={code} 
+                            onChange={(e) => { setCode(e.target.value); setError(''); }} 
+                            onKeyPress={(e) => e.key === 'Enter' && !loading && handleSubmit()} 
+                            style={{ marginBottom: '16px' }}
+                            disabled={loading}
+                        />
+                        {error && <div className="error-msg" style={{ marginBottom: '16px' }}>{error}</div>}
+                        <button className="btn btn-primary" onClick={handleSubmit} disabled={loading}>
+                            {loading ? 'Verifying...' : 'Enter Dashboard'}
+                        </button>
+                    </div>
+                </div>
+            );
+        };
+
+        const SpotCard = ({ spot, onRent, onManage }) => {
+            const days = daysBetween(spot.availableFrom, spot.availableTo);
+            const sizeIcons = { 'Full Size': '🚗', 'Compact': '🚙', 'Motorcycle': '🏍️' };
+            return (
+                <div className="spot-card">
+                    <div className="spot-header">
+                        <div>
+                            <div className="spot-badge">{days} {days === 1 ? 'day' : 'days'} available</div>
+                            <div className="spot-venmo">Pay to: <span>{spot.venmo}</span></div>
+                        </div>
+                        <div className="spot-price"><div className="amount">${spot.pricePerDay}</div><div className="period">per day</div></div>
+                    </div>
+                    <div className="spot-info-row">
+                        <div className="spot-info-tag">{sizeIcons[spot.size] || '🚗'} {spot.size || 'Full Size'}</div>
+                        <div className="spot-info-tag">📍 {spot.floor || 'P1'}</div>
+                    </div>
+                    <div className="spot-dates">
+                        <div className="spot-dates-icon">🗓️</div>
+                        <div>
+                            <div className="spot-dates-label">Available Period</div>
+                            <div className="spot-dates-value">{formatDate(spot.availableFrom)} → {formatDate(spot.availableTo)}</div>
+                            <div className="spot-dates-time">🕐 {formatTime(spot.availableFrom)} - {formatTime(spot.availableTo)} {CONFIG.TIMEZONE}</div>
+                        </div>
+                    </div>
+                    <button className="spot-btn" onClick={() => onRent(spot)}>Rent This Spot →</button>
+                    <button className="spot-btn manage-btn" onClick={() => onManage(spot)}>✏️ Edit / Delete Listing</button>
+                </div>
+            );
+        };
+
+        const Modal = ({ isOpen, onClose, title, children }) => {
+            if (!isOpen) return null;
+            return (
+                <div className={`modal-overlay ${isOpen ? 'active' : ''}`} onClick={(e) => e.target === e.currentTarget && onClose()}>
+                    <div className="modal">
+                        <div className="modal-header"><h2>{title}</h2><button className="modal-close" onClick={onClose}>×</button></div>
+                        <div className="modal-body">{children}</div>
+                    </div>
+                </div>
+            );
+        };
+
+        const DateTimeInput = ({ label, required, date, time, onDateChange, onTimeChange, minDate, maxDate, minTime, maxTime, showTimeBounds, minTimeDisplay, maxTimeDisplay }) => (
+            <div className="form-group">
+                <label className={required ? 'required' : ''}>{label}<span className="timezone-badge">{CONFIG.TIMEZONE}</span></label>
+                <div className="datetime-input">
+                    <input type="date" className="input" value={date} onChange={(e) => onDateChange(e.target.value)} min={minDate} max={maxDate} />
+                    <input type="time" className="input" value={time} onChange={(e) => onTimeChange(e.target.value)} min={minTime} max={maxTime} />
+                </div>
+                {showTimeBounds && (minTimeDisplay || maxTimeDisplay) && <div className="hint" style={{ color: 'var(--accent-primary)' }}>{minTimeDisplay && `Earliest: ${minTimeDisplay}`}{minTimeDisplay && maxTimeDisplay && ' | '}{maxTimeDisplay && `Latest: ${maxTimeDisplay}`}</div>}
+            </div>
+        );
+
+        const AddSpotModal = ({ isOpen, onClose, onSubmit }) => {
+            const [formData, setFormData] = useState({ venmo: '', email: '', phone: '', spotNumber: '', size: 'Full Size', floor: 'P1', notes: '', fromDate: '', fromTime: '08:00', toDate: '', toTime: '18:00', pricePerDay: CONFIG.PRICE_PER_DAY, pin: '' });
+            const [loading, setLoading] = useState(false);
+            const [errors, setErrors] = useState({});
+            
+            const handlePhoneChange = (value) => {
+                const formatted = formatPhoneNumber(value);
+                setFormData(prev => ({ ...prev, phone: formatted }));
+                if (errors.phone) setErrors(prev => ({ ...prev, phone: '' }));
+            };
+            
+            const handleEmailChange = (value) => {
+                setFormData(prev => ({ ...prev, email: sanitizeEmail(value) }));
+                if (errors.email) setErrors(prev => ({ ...prev, email: '' }));
+            };
+            
+            const handleSubmit = async () => {
+                const { venmo, email, phone, spotNumber, fromDate, fromTime, toDate, toTime, pin } = formData;
+                const newErrors = {};
+                
+                if (!venmo || !email || !phone || !spotNumber || !fromDate || !fromTime || !toDate || !toTime) { 
+                    alert('Please fill in all required fields'); 
+                    return; 
+                }
+                
+                if (!isValidEmail(email)) {
+                    newErrors.email = 'Please enter a valid email address';
+                }
+                
+                if (!isValidPhone(phone)) {
+                    newErrors.phone = 'Please enter a valid 10-digit phone number';
+                }
+                
+                if (!pin || pin.length !== 4 || !/^\d{4}$/.test(pin)) { 
+                    alert('Please enter a 4-digit PIN'); 
+                    return; 
+                }
+                
+                if (Object.keys(newErrors).length > 0) {
+                    setErrors(newErrors);
+                    return;
+                }
+                
+                const availableFrom = combineDateTime(fromDate, fromTime), availableTo = combineDateTime(toDate, toTime);
+                if (new Date(availableFrom) >= new Date(availableTo)) { alert('End date/time must be after start date/time'); return; }
+                
+                // Check that start time is not in the past (PST) using UTC-based comparison
+                const nowPST = getNowInPST();
+                const startUTC = dateTimePSTToUTC(fromDate, fromTime);
+                if (startUTC && startUTC < nowPST) {
+                    alert('Start date/time cannot be in the past (PST)');
+                    return;
+                }
+                
+                setLoading(true);
+                const result = await api.addSpot({ venmo: venmo.startsWith('@') ? venmo : '@' + venmo, email, phone, spotNumber, size: formData.size, floor: formData.floor, notes: formData.notes, availableFrom, availableTo, pricePerDay: formData.pricePerDay, pin });
+                setLoading(false);
+                if (result.success) { onSubmit(); onClose(); setFormData({ venmo: '', email: '', phone: '', spotNumber: '', size: 'Full Size', floor: 'P1', notes: '', fromDate: '', fromTime: '08:00', toDate: '', toTime: '18:00', pricePerDay: CONFIG.PRICE_PER_DAY, pin: '' }); setErrors({}); }
+                else alert('Error: ' + (result.error || 'Unknown error'));
+            };
+            const today = getTodayString();
+            return (
+                <Modal isOpen={isOpen} onClose={onClose} title="List Your Spot">
+                    <div className="form-group"><label className="required">Your Venmo Handle</label><input type="text" className="input" placeholder="@username" value={formData.venmo} onChange={(e) => setFormData(prev => ({ ...prev, venmo: e.target.value }))} /></div>
+                    <div className="form-row">
+                        <div className="form-group">
+                            <label className="required">Your Email</label>
+                            <input type="email" className={`input ${errors.email ? 'error' : ''}`} placeholder="you@email.com" value={formData.email} onChange={(e) => handleEmailChange(e.target.value)} />
+                            {errors.email && <div className="error-msg">{errors.email}</div>}
+                        </div>
+                        <div className="form-group">
+                            <label className="required">Your Phone</label>
+                            <input type="tel" className={`input ${errors.phone ? 'error' : ''}`} placeholder="(555) 123-4567" value={formData.phone} onChange={(e) => handlePhoneChange(e.target.value)} />
+                            {errors.phone && <div className="error-msg">{errors.phone}</div>}
+                        </div>
+                    </div>
+                    <div className="form-group"><label className="required">Parking Spot Number</label><input type="text" className="input" placeholder="e.g., A-142" value={formData.spotNumber} onChange={(e) => setFormData(prev => ({ ...prev, spotNumber: e.target.value }))} /></div>
+                    <div className="form-row">
+                        <div className="form-group"><label className="required">Spot Size</label><select className="input" value={formData.size} onChange={(e) => setFormData(prev => ({ ...prev, size: e.target.value }))}><option value="Full Size">Full Size</option><option value="Compact">Compact</option><option value="Motorcycle">Motorcycle</option></select></div>
+                        <div className="form-group"><label className="required">Floor</label><select className="input" value={formData.floor} onChange={(e) => setFormData(prev => ({ ...prev, floor: e.target.value }))}><option value="P1">P1</option><option value="P2">P2</option><option value="P3">P3</option></select></div>
+                    </div>
+                    <div className="form-group"><label>Notes (optional)</label><input type="text" className="input" placeholder="e.g., Near elevator, Covered spot, Easy access" value={formData.notes} onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))} /><div className="hint">Add any helpful details for renters. Visible when they click to rent.</div></div>
+                    <DateTimeInput label="Available From" required date={formData.fromDate} time={formData.fromTime} onDateChange={(v) => setFormData(prev => ({ ...prev, fromDate: v }))} onTimeChange={(v) => setFormData(prev => ({ ...prev, fromTime: v }))} minDate={today} />
+                    <DateTimeInput label="Available To" required date={formData.toDate} time={formData.toTime} onDateChange={(v) => setFormData(prev => ({ ...prev, toDate: v }))} onTimeChange={(v) => setFormData(prev => ({ ...prev, toTime: v }))} minDate={formData.fromDate || today} />
+                    <div className="form-group"><label className="required">Price Per Day ($)</label><input type="number" className="input" value={formData.pricePerDay} onChange={(e) => setFormData(prev => ({ ...prev, pricePerDay: parseInt(e.target.value) || 10 }))} /></div>
+                    <div className="form-group"><label className="required">4-Digit PIN (to edit/delete later)</label><input type="password" className="input" placeholder="e.g., 1234" maxLength="4" value={formData.pin} onChange={(e) => setFormData(prev => ({ ...prev, pin: e.target.value }))} /><div className="hint">Remember this PIN! You'll need it to edit or remove your listing.</div></div>
+                    <button className="btn btn-primary" onClick={handleSubmit} disabled={loading}>{loading ? 'Adding...' : 'List My Spot'}</button>
+                </Modal>
+            );
+        };
+
+        const RentModal = ({ isOpen, onClose, spot, onSubmit }) => {
+            const [step, setStep] = useState(1);
+            const [rentData, setRentData] = useState({ fromDate: '', fromTime: '', toDate: '', toTime: '', name: '', email: '', phone: '', screenshot: null, screenshotPreview: null });
+            const [loading, setLoading] = useState(false);
+            const [result, setResult] = useState(null);
+            const [errors, setErrors] = useState({});
+            const spotFrom = useMemo(() => spot ? parseDateTime(spot.availableFrom) : { date: '', time: '' }, [spot]);
+            const spotTo = useMemo(() => spot ? parseDateTime(spot.availableTo) : { date: '', time: '' }, [spot]);
+            useEffect(() => { if (isOpen && spot) { setStep(1); setRentData({ fromDate: spotFrom.date, fromTime: spotFrom.time, toDate: spotTo.date, toTime: spotTo.time, name: '', email: '', phone: '', screenshot: null, screenshotPreview: null }); setResult(null); setErrors({}); } }, [isOpen, spot, spotFrom, spotTo]);
+            if (!spot) return null;
+            const startDateTime = combineDateTime(rentData.fromDate, rentData.fromTime), endDateTime = combineDateTime(rentData.toDate, rentData.toTime);
+            const startDateTimePST = combineDateTimePST(rentData.fromDate, rentData.fromTime), endDateTimePST = combineDateTimePST(rentData.toDate, rentData.toTime);
+            const validateRental = () => {
+                if (!rentData.fromDate || !rentData.fromTime || !rentData.toDate || !rentData.toTime) return 'Please fill in all date and time fields';
+                // Use PST-aware datetimes for comparison since spot times come with timezone offset
+                const start = new Date(startDateTimePST), end = new Date(endDateTimePST), spotStart = new Date(spot.availableFrom), spotEnd = new Date(spot.availableTo);
+                
+                // Check if start time is in the past (PST) using UTC-based comparison
+                const nowPST = getNowInPST();
+                const startUTC = dateTimePSTToUTC(rentData.fromDate, rentData.fromTime);
+                if (startUTC && startUTC < nowPST) return 'Start date/time cannot be in the past (PST)';
+                
+                if (start < spotStart) return `Cannot start before ${formatDateTimeDisplay(spot.availableFrom)}`;
+                if (end > spotEnd) return `Cannot end after ${formatDateTimeDisplay(spot.availableTo)}`;
+                if (start >= end) return 'End time must be after start time';
+                return '';
+            };
+            const validationError = validateRental();
+            const hours = hoursBetween(startDateTime, endDateTime), days = hours > 0 ? Math.ceil(hours / 24) : 0, total = days * spot.pricePerDay;
+            
+            const validateStep2 = () => {
+                const newErrors = {};
+                if (rentData.email && !isValidEmail(rentData.email)) {
+                    newErrors.email = 'Please enter a valid email';
+                }
+                if (rentData.phone && !isValidPhone(rentData.phone)) {
+                    newErrors.phone = 'Please enter a valid 10-digit phone';
+                }
+                return newErrors;
+            };
+            
+            const step2Errors = validateStep2();
+            const canProceedToStep2 = validationError === '';
+            const canConfirm = rentData.name && rentData.email && rentData.phone && rentData.screenshot && isValidEmail(rentData.email) && isValidPhone(rentData.phone);
+            
+            const getFromTimeMin = () => rentData.fromDate === spotFrom.date ? spotFrom.time : undefined;
+            const getToTimeMax = () => rentData.toDate === spotTo.date ? spotTo.time : undefined;
+            // Format time bounds for display in 12-hour format
+            const getFromTimeMinDisplay = () => { const t = getFromTimeMin(); return t ? formatTimeTo12Hour(t) : null; };
+            const getToTimeMaxDisplay = () => { const t = getToTimeMax(); return t ? formatTimeTo12Hour(t) : null; };
+            const handleFileChange = async (e) => { const file = e.target.files?.[0]; if (file) { const base64 = await fileToBase64(file); setRentData(prev => ({ ...prev, screenshot: base64, screenshotPreview: base64 })); } };
+            const clearScreenshot = () => setRentData(prev => ({ ...prev, screenshot: null, screenshotPreview: null }));
+            
+            const handlePhoneChange = (value) => {
+                const formatted = formatPhoneNumber(value);
+                setRentData(prev => ({ ...prev, phone: formatted }));
+            };
+            
+            const handleConfirm = async () => { 
+                if (!canConfirm) return;
+                setLoading(true); 
+                const res = await api.rentSpot(spot.id, startDateTime, endDateTime, { 
+                    name: rentData.name, 
+                    email: rentData.email, 
+                    phone: rentData.phone,
+                    screenshot: rentData.screenshot
+                }); 
+                setLoading(false); 
+                if (res.success) { setResult(res); setStep(3); onSubmit(); } 
+                else alert('Error: ' + (res.error || 'Unknown error')); 
+            };
+            const handleClose = () => { setStep(1); setResult(null); setErrors({}); onClose(); };
+            return (
+                <Modal isOpen={isOpen} onClose={handleClose} title={step === 3 ? '✅ Rental Confirmed!' : 'Rent Parking Spot'}>
+                    {step === 1 && (<>
+                        <div className="availability-info"><div className="label">Spot Availability</div><div className="value">{formatDateTimeDisplay(spot.availableFrom)} → {formatDateTimeDisplay(spot.availableTo)}</div></div>
+                        {spot.notes && <div className="availability-info" style={{ background: 'var(--accent-light)' }}><div className="label">Owner's Note</div><div className="value">{spot.notes}</div></div>}
+                        <DateTimeInput label="Rental Start" required date={rentData.fromDate} time={rentData.fromTime} onDateChange={(v) => setRentData(prev => ({ ...prev, fromDate: v, fromTime: v === spotFrom.date ? spotFrom.time : prev.fromTime }))} onTimeChange={(v) => setRentData(prev => ({ ...prev, fromTime: v }))} minDate={spotFrom.date} maxDate={spotTo.date} minTime={getFromTimeMin()} minTimeDisplay={getFromTimeMinDisplay()} showTimeBounds={rentData.fromDate === spotFrom.date} />
+                        <DateTimeInput label="Rental End" required date={rentData.toDate} time={rentData.toTime} onDateChange={(v) => setRentData(prev => ({ ...prev, toDate: v, toTime: v === spotTo.date ? spotTo.time : prev.toTime }))} onTimeChange={(v) => setRentData(prev => ({ ...prev, toTime: v }))} minDate={rentData.fromDate || spotFrom.date} maxDate={spotTo.date} maxTime={getToTimeMax()} maxTimeDisplay={getToTimeMaxDisplay()} showTimeBounds={rentData.toDate === spotTo.date} />
+                        <div className="cost-box"><div className="cost-row"><span className="label">${spot.pricePerDay} × {days} {days === 1 ? 'day' : 'days'}</span><span>${total}</span></div>{hours > 0 && <div className="cost-row" style={{ fontSize: '13px' }}><span className="label">({hours.toFixed(1)} hours total)</span><span></span></div>}<div className="cost-row total"><span className="label">Total</span><span className="value">${total}</span></div></div>
+                        <div className="venmo-box"><div className="label">Send payment via Venmo to:</div><div className="handle">{spot.venmo}</div></div>
+                        <button className="btn btn-primary" onClick={() => setStep(2)} disabled={!canProceedToStep2}>I've Sent the Payment →</button>
+                        {validationError && <div className="error-msg" style={{ textAlign: 'center', marginTop: '8px' }}>{validationError}</div>}
+                    </>)}
+                    {step === 2 && (<>
+                        <div className="form-group"><label className="required">Your Name</label><input type="text" className="input" placeholder="Your full name" value={rentData.name} onChange={(e) => setRentData(prev => ({ ...prev, name: e.target.value }))} /></div>
+                        <div className="form-row">
+                            <div className="form-group">
+                                <label className="required">Your Email</label>
+                                <input type="email" className={`input ${step2Errors.email ? 'error' : ''}`} placeholder="you@email.com" value={rentData.email} onChange={(e) => setRentData(prev => ({ ...prev, email: sanitizeEmail(e.target.value) }))} />
+                                {step2Errors.email && <div className="error-msg">{step2Errors.email}</div>}
+                            </div>
+                            <div className="form-group">
+                                <label className="required">Your Phone</label>
+                                <input type="tel" className={`input ${step2Errors.phone ? 'error' : ''}`} placeholder="(555) 123-4567" value={rentData.phone} onChange={(e) => handlePhoneChange(e.target.value)} />
+                                {step2Errors.phone && <div className="error-msg">{step2Errors.phone}</div>}
+                            </div>
+                        </div>
+                        <div className="form-group">
+                            <label className="required">Upload your Venmo payment screenshot</label>
+                            <div className={`upload-area ${rentData.screenshotPreview ? 'has-file' : ''}`} onClick={() => document.getElementById('screenshot-input').click()}>
+                                <input type="file" id="screenshot-input" accept="image/*" style={{ display: 'none' }} onChange={handleFileChange} />
+                                {rentData.screenshotPreview ? <img src={rentData.screenshotPreview} className="upload-preview" alt="Screenshot" /> : <><div className="upload-icon">📤</div><div className="upload-text">Click to upload screenshot</div><div className="upload-hint">PNG, JPG up to 10MB</div></>}
+                            </div>
+                            {rentData.screenshotPreview && <button className="clear-btn" onClick={clearScreenshot}>✕ Clear Image</button>}
+                        </div>
+                        <div style={{ display: 'flex', gap: '12px' }}>
+                            <button className="btn btn-secondary" onClick={() => setStep(1)}>← Back</button>
+                            <button className="btn btn-primary" style={{ flex: 2 }} onClick={handleConfirm} disabled={!canConfirm || loading}>{loading ? 'Processing...' : 'Confirm & Get Spot Number'}</button>
+                        </div>
+                        {!canConfirm && <div className="error-msg" style={{ textAlign: 'center', marginTop: '8px' }}>Please fill in all fields correctly and upload a screenshot</div>}
+                    </>)}
+                    {step === 3 && result && (
+                        <div className="success-content">
+                            <div className="success-icon">🎉</div>
+                            <div className="spot-number-reveal"><div className="label">Your parking spot number is:</div><div className="number">{result.spotNumber}</div></div>
+                            <div className="owner-contact"><div className="label">Owner's Phone (for questions)</div><div className="value">{result.ownerPhone || '—'}</div></div>
+                            <div className="owner-contact"><div className="label">Rental Period</div><div className="value">{formatDateTimeLocal(startDateTime)} → {formatDateTimeLocal(endDateTime)}</div></div>
+                            <p style={{ color: 'var(--text-secondary)', fontSize: '14px', marginBottom: '20px' }}>A confirmation email has been sent to you and the spot owner.</p>
+                            <button className="btn btn-secondary" onClick={handleClose}>Done</button>
+                        </div>
+                    )}
+                </Modal>
+            );
+        };
+
+        const ManageModal = ({ isOpen, onClose, spot, onUpdate, onDelete }) => {
+            const [step, setStep] = useState(1);
+            const [pin, setPin] = useState('');
+            const [pinError, setPinError] = useState('');
+            const [verifiedPin, setVerifiedPin] = useState(null);
+            const [formData, setFormData] = useState({});
+            const [errors, setErrors] = useState({});
+            const [loading, setLoading] = useState(false);
+            
+            useEffect(() => { 
+                if (isOpen && spot) { 
+                    setStep(1); 
+                    setPin(''); 
+                    setPinError(''); 
+                    setVerifiedPin(null); 
+                    setErrors({});
+                    const from = parseDateTime(spot.availableFrom), to = parseDateTime(spot.availableTo); 
+                    setFormData({ 
+                        venmo: spot.venmo || '', 
+                        email: spot.email || '', 
+                        phone: spot.phone ? formatPhoneNumber(spot.phone.replace(/\D/g, '')) : '', 
+                        spotNumber: spot.spotNumber || '', 
+                        size: spot.size || 'Full Size', 
+                        floor: spot.floor || 'P1',
+                        notes: spot.notes || '',
+                        fromDate: from.date, 
+                        fromTime: from.time, 
+                        toDate: to.date, 
+                        toTime: to.time, 
+                        pricePerDay: spot.pricePerDay || 10
+                    }); 
+                } 
+            }, [isOpen, spot]);
+            
+            if (!spot) return null;
+            
+            const handleVerifyPin = async () => { 
+                if (!pin || pin.length !== 4) { 
+                    setPinError('Please enter a 4-digit PIN'); 
+                    return; 
+                } 
+                setLoading(true); 
+                const result = await api.verifyPin(spot.id, pin); 
+                setLoading(false); 
+                if (result.success) { 
+                    setVerifiedPin(pin); 
+                    setStep(2); 
+                } else {
+                    setPinError('Incorrect PIN'); 
+                }
+            };
+            
+            const handlePhoneChange = (value) => {
+                const formatted = formatPhoneNumber(value);
+                setFormData(prev => ({ ...prev, phone: formatted }));
+                if (errors.phone) setErrors(prev => ({ ...prev, phone: '' }));
+            };
+            
+            const handleEmailChange = (value) => {
+                setFormData(prev => ({ ...prev, email: sanitizeEmail(value) }));
+                if (errors.email) setErrors(prev => ({ ...prev, email: '' }));
+            };
+            
+            const validateForm = () => {
+                const newErrors = {};
+                if (!formData.venmo) newErrors.venmo = 'Required';
+                if (!formData.email) newErrors.email = 'Required';
+                else if (!isValidEmail(formData.email)) newErrors.email = 'Invalid email';
+                if (!formData.phone) newErrors.phone = 'Required';
+                else if (!isValidPhone(formData.phone)) newErrors.phone = 'Invalid phone';
+                if (!formData.spotNumber) newErrors.spotNumber = 'Required';
+                if (!formData.fromDate || !formData.fromTime) newErrors.fromDate = 'Required';
+                if (!formData.toDate || !formData.toTime) newErrors.toDate = 'Required';
+                if (!formData.pricePerDay) newErrors.pricePerDay = 'Required';
+                return newErrors;
+            };
+            
+            const handleSave = async () => {
+                const newErrors = validateForm();
+                if (Object.keys(newErrors).length > 0) {
+                    setErrors(newErrors);
+                    alert('Please fill in all required fields correctly');
+                    return;
+                }
+                
+                const availableFrom = combineDateTime(formData.fromDate, formData.fromTime), availableTo = combineDateTime(formData.toDate, formData.toTime);
+                if (new Date(availableFrom) >= new Date(availableTo)) { alert('End date/time must be after start date/time'); return; }
+                setLoading(true);
+                const result = await api.updateSpot(spot.id, verifiedPin, { ...formData, availableFrom, availableTo });
+                setLoading(false);
+                if (result.success) { onUpdate(); onClose(); alert('Updated!'); } else alert('Error: ' + (result.error || 'Unknown error'));
+            };
+            
+            const handleDelete = async () => { if (!confirm('Delete this listing?')) return; setLoading(true); const result = await api.deleteSpot(spot.id, verifiedPin); setLoading(false); if (result.success) { onDelete(); onClose(); alert('Deleted!'); } else alert('Error: ' + (result.error || 'Unknown error')); };
+            
+            return (
+                <Modal isOpen={isOpen} onClose={onClose} title="Manage Your Listing">
+                    {step === 1 && (<>
+                        <p style={{ color: 'var(--text-secondary)', marginBottom: '20px' }}>Enter the 4-digit PIN you set when creating this listing.</p>
+                        <div className="form-group"><label>Your PIN</label><input type="password" className="input" placeholder="Enter 4-digit PIN" maxLength="4" value={pin} onChange={(e) => { setPin(e.target.value); setPinError(''); }} onKeyPress={(e) => e.key === 'Enter' && handleVerifyPin()} />{pinError && <div className="error-msg">{pinError}</div>}</div>
+                        <button className="btn btn-primary" onClick={handleVerifyPin} disabled={loading}>{loading ? 'Verifying...' : 'Verify PIN'}</button>
+                    </>)}
+                    {step === 2 && (<>
+                        <div className="form-group">
+                            <label className="required">Venmo Handle</label>
+                            <input type="text" className={`input ${errors.venmo ? 'error' : ''}`} value={formData.venmo} onChange={(e) => setFormData(prev => ({ ...prev, venmo: e.target.value }))} />
+                        </div>
+                        <div className="form-row">
+                            <div className="form-group">
+                                <label className="required">Email</label>
+                                <input type="email" className={`input ${errors.email ? 'error' : ''}`} value={formData.email} onChange={(e) => handleEmailChange(e.target.value)} />
+                                {errors.email && <div className="error-msg">{errors.email}</div>}
+                            </div>
+                            <div className="form-group">
+                                <label className="required">Phone</label>
+                                <input type="tel" className={`input ${errors.phone ? 'error' : ''}`} value={formData.phone} onChange={(e) => handlePhoneChange(e.target.value)} />
+                                {errors.phone && <div className="error-msg">{errors.phone}</div>}
+                            </div>
+                        </div>
+                        <div className="form-group">
+                            <label className="required">Parking Spot Number</label>
+                            <input type="text" className={`input ${errors.spotNumber ? 'error' : ''}`} value={formData.spotNumber} onChange={(e) => setFormData(prev => ({ ...prev, spotNumber: e.target.value }))} />
+                        </div>
+                        <div className="form-row">
+                            <div className="form-group"><label className="required">Spot Size</label><select className="input" value={formData.size} onChange={(e) => setFormData(prev => ({ ...prev, size: e.target.value }))}><option value="Full Size">Full Size</option><option value="Compact">Compact</option><option value="Motorcycle">Motorcycle</option></select></div>
+                            <div className="form-group"><label className="required">Floor</label><select className="input" value={formData.floor} onChange={(e) => setFormData(prev => ({ ...prev, floor: e.target.value }))}><option value="P1">P1</option><option value="P2">P2</option><option value="P3">P3</option></select></div>
+                        </div>
+                        <div className="form-group"><label>Notes (optional)</label><input type="text" className="input" placeholder="e.g., Near elevator, Covered spot" value={formData.notes} onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))} /></div>
+                        <DateTimeInput label="Available From" required date={formData.fromDate} time={formData.fromTime} onDateChange={(v) => setFormData(prev => ({ ...prev, fromDate: v }))} onTimeChange={(v) => setFormData(prev => ({ ...prev, fromTime: v }))} />
+                        <DateTimeInput label="Available To" required date={formData.toDate} time={formData.toTime} onDateChange={(v) => setFormData(prev => ({ ...prev, toDate: v }))} onTimeChange={(v) => setFormData(prev => ({ ...prev, toTime: v }))} minDate={formData.fromDate} />
+                        <div className="form-group"><label className="required">Price Per Day ($)</label><input type="number" className={`input ${errors.pricePerDay ? 'error' : ''}`} value={formData.pricePerDay} onChange={(e) => setFormData(prev => ({ ...prev, pricePerDay: parseInt(e.target.value) || 10 }))} /></div>
+                        <div style={{ display: 'flex', gap: '12px' }}>
+                            <button className="btn btn-danger" style={{ width: 'auto', padding: '14px 20px' }} onClick={handleDelete} disabled={loading}>🗑️ Delete</button>
+                            <button className="btn btn-primary" style={{ flex: 1 }} onClick={handleSave} disabled={loading}>{loading ? 'Saving...' : 'Save Changes'}</button>
+                        </div>
+                    </>)}
+                </Modal>
+            );
+        };
+
+        const FAQSection = ({ title, emoji, children, defaultOpen = false }) => {
+            const [isOpen, setIsOpen] = useState(defaultOpen);
+            return (
+                <div className="faq-section-toggle">
+                    <div className={`faq-section-header ${isOpen ? 'open' : ''}`} onClick={() => setIsOpen(!isOpen)}>
+                        <span>{emoji} {title}</span>
+                        <span className="toggle-icon">▼</span>
+                    </div>
+                    <div className={`faq-section-content ${isOpen ? '' : 'collapsed'}`}>
+                        {children}
+                    </div>
+                </div>
+            );
+        };
+
+        const FAQPage = () => {
+            return (
+                <div className="faq-page">
+                    <div className="faq-header">
+                        <h2>📋 FAQ</h2>
+                        <p>Everything you need to know about using the parking dashboard</p>
+                    </div>
+                    
+                    <FAQSection title="For Renters" emoji="🚗">
+                        <div className="faq-item">
+                            <div className="faq-question">How do I rent a parking spot?</div>
+                            <div className="faq-answer">
+                                <ol>
+                                    <li>Browse available spots on the dashboard</li>
+                                    <li>Click <strong>"Rent This Spot"</strong> on the listing you want</li>
+                                    <li>Select your rental dates and times</li>
+                                    <li>Send payment via Venmo to the owner's handle shown</li>
+                                    <li>Upload a screenshot of your Venmo payment</li>
+                                    <li>Enter your contact information and confirm</li>
+                                    <li>You'll receive the spot number and owner's contact info</li>
+                                </ol>
+                            </div>
+                        </div>
+                        <div className="faq-item">
+                            <div className="faq-question">How is pricing calculated?</div>
+                            <div className="faq-answer">
+                                Pricing is calculated per day. Any partial day counts as a full day. For example, 8 hours = 1 day, 25 hours = 2 days, 48 hours = 2 days.
+                            </div>
+                        </div>
+                        <div className="faq-item">
+                            <div className="faq-question">What if I have issues with the spot?</div>
+                            <div className="faq-answer">
+                                Contact the spot owner directly using the phone number provided in your confirmation. The owner's contact info is also sent to your email.
+                            </div>
+                        </div>
+                        <div className="faq-item">
+                            <div className="faq-question">Why do I need to upload a Venmo screenshot?</div>
+                            <div className="faq-answer">
+                                The screenshot serves as proof of payment and helps protect both renters and owners. It's stored securely and only accessible to building management if needed for dispute resolution.
+                            </div>
+                        </div>
+                    </FAQSection>
+                    
+                    <FAQSection title="For Spot Owners" emoji="🅿️">
+                        <div className="faq-item">
+                            <div className="faq-question">How do I list my parking spot?</div>
+                            <div className="faq-answer">
+                                <ol>
+                                    <li>Click <strong>"+ List Your Spot"</strong> in the header</li>
+                                    <li>Enter your Venmo handle, email, and phone number</li>
+                                    <li>Enter your parking spot number, size, and floor</li>
+                                    <li>Optionally add a note (e.g., "Near elevator", "Covered spot")</li>
+                                    <li>Set the dates and times your spot is available</li>
+                                    <li>Set your price per day (default is $10)</li>
+                                    <li>Create a 4-digit PIN (you'll need this to edit or delete your listing)</li>
+                                    <li>Click "List My Spot"</li>
+                                </ol>
+                            </div>
+                        </div>
+                        <div className="faq-item">
+                            <div className="faq-question">How do I find my listing?</div>
+                            <div className="faq-answer">
+                                Use the "Search by Venmo" filter on the dashboard and enter your Venmo handle. Your listing(s) will appear in the results. Spot numbers are not searchable to protect owner privacy.
+                            </div>
+                        </div>
+                        <div className="faq-item">
+                            <div className="faq-question">How do I edit or delete my listing?</div>
+                            <div className="faq-answer">
+                                Click <strong>"Edit / Delete Listing"</strong> on your spot card, then enter your 4-digit PIN. From there you can update any details or remove the listing entirely.
+                            </div>
+                        </div>
+                        <div className="faq-item">
+                            <div className="faq-question">What happens when someone rents my spot?</div>
+                            <div className="faq-answer">
+                                You'll receive an email notification with the renter's details. If they only rent part of your available period, the remaining time will automatically become a new listing. Payment is sent directly to your Venmo - no platform fees!
+                            </div>
+                        </div>
+                        <div className="faq-item">
+                            <div className="faq-question">I forgot my PIN. What do I do?</div>
+                            <div className="faq-answer">
+                                Please contact Vishnu to help with recovery.
+                            </div>
+                        </div>
+                    </FAQSection>
+                    
+                    <FAQSection title="Times & Scheduling" emoji="⏰">
+                        <div className="faq-item">
+                            <div className="faq-question">What timezone are the times in?</div>
+                            <div className="faq-answer">
+                                All times are displayed in <strong>Pacific Standard Time (PST)</strong>, which is the timezone of the building. This ensures consistency regardless of where you're viewing the dashboard from.
+                            </div>
+                        </div>
+                        <div className="faq-item">
+                            <div className="faq-question">Can I list my spot for specific hours?</div>
+                            <div className="faq-answer">
+                                Yes! When creating a listing, you can specify exact start and end times. For example, you could list your spot from 9 AM to 5 PM on weekdays if you only use it evenings and weekends.
+                            </div>
+                        </div>
+                    </FAQSection>
+                    
+                    <FAQSection title="Payments" emoji="💳">
+                        <div className="faq-item">
+                            <div className="faq-question">How do payments work?</div>
+                            <div className="faq-answer">
+                                Payments are made directly between renters and owners via Venmo. The dashboard does not process any payments - it simply facilitates the connection.
+                            </div>
+                        </div>
+                        <div className="faq-item">
+                            <div className="faq-question">Are there any fees?</div>
+                            <div className="faq-answer">
+                                No! This is a free service for building residents. Owners receive 100% of the rental price they set.
+                            </div>
+                        </div>
+                    </FAQSection>
+                    
+                    <FAQSection title="Other Questions" emoji="❓">
+                        <div className="faq-item">
+                            <div className="faq-question">Why are the listings in random order?</div>
+                            <div className="faq-answer">
+                                Listings are randomly sorted by default to ensure fairness - no single spot gets priority over another. You can change the sort order using the "Sort by" dropdown to view by soonest available or longest duration if you prefer.
+                            </div>
+                        </div>
+                    </FAQSection>
+                </div>
+            );
+        };
+
+        const Dashboard = ({ onLogout, currentPage, onNavigate }) => {
+            const [spots, setSpots] = useState([]);
+            const [loading, setLoading] = useState(true);
+            const [filters, setFilters] = useState({ date: '', venmo: '', size: '', floor: '' });
+            const [sortBy, setSortBy] = useState('random');
+            const [shuffledOrder, setShuffledOrder] = useState([]);
+            const [addModalOpen, setAddModalOpen] = useState(false);
+            const [rentModalOpen, setRentModalOpen] = useState(false);
+            const [manageModalOpen, setManageModalOpen] = useState(false);
+            const [selectedSpot, setSelectedSpot] = useState(null);
+            const loadSpots = useCallback(async () => { 
+                setLoading(true); 
+                const data = await api.fetchSpots(); 
+                setSpots(data);
+                // Create a shuffled order of IDs for random sort
+                setShuffledOrder(shuffleArray(data.map(s => s.id)));
+                setLoading(false); 
+            }, []);
+            useEffect(() => { loadSpots(); }, [loadSpots]);
+            const filteredSpots = useMemo(() => {
+                let result = spots.filter(s => s.status === 'available');
+                if (filters.date) result = result.filter(s => isDateInRange(filters.date, s.availableFrom, s.availableTo));
+                if (filters.venmo) result = result.filter(s => s.venmo.toLowerCase().includes(filters.venmo.toLowerCase()));
+                if (filters.size) result = result.filter(s => s.size === filters.size);
+                if (filters.floor) result = result.filter(s => s.floor === filters.floor);
+                switch (sortBy) {
+                    case 'random': 
+                        result.sort((a, b) => shuffledOrder.indexOf(a.id) - shuffledOrder.indexOf(b.id)); 
+                        break;
+                    case 'soonest': 
+                        result.sort((a, b) => new Date(a.availableFrom) - new Date(b.availableFrom)); 
+                        break;
+                    case 'longest': 
+                        result.sort((a, b) => daysBetween(b.availableFrom, b.availableTo) - daysBetween(a.availableFrom, a.availableTo)); 
+                        break;
+                }
+                return result;
+            }, [spots, filters, sortBy, shuffledOrder]);
+            const hasFilters = filters.date || filters.venmo || filters.size || filters.floor;
+            const clearFilters = () => setFilters({ date: '', venmo: '', size: '', floor: '' });
+            const handleRent = (spot) => { setSelectedSpot(spot); setRentModalOpen(true); };
+            const handleManage = (spot) => { setSelectedSpot(spot); setManageModalOpen(true); };
+            return (
+                <div className="dashboard active">
+                    <header>
+                        <div className="logo"><h1>🚗 The Palms Parking</h1></div>
+                        <div className="header-nav">
+                            <button className={`nav-link ${currentPage === 'dashboard' ? 'active' : ''}`} onClick={() => onNavigate('dashboard')}>Dashboard</button>
+                            <button className={`nav-link ${currentPage === 'faq' ? 'active' : ''}`} onClick={() => onNavigate('faq')}>FAQ</button>
+                            <button className="btn btn-primary" style={{ width: 'auto', padding: '10px 20px' }} onClick={() => setAddModalOpen(true)}>+ List Your Spot</button>
+                        </div>
+                    </header>
+                    {currentPage === 'faq' ? (
+                        <FAQPage />
+                    ) : (
+                        <main className="main">
+                            <div className="filters">
+                                <div className="filter-group"><label>Search by date</label><input type="date" className="input" min={getTodayString()} value={filters.date} onChange={(e) => { const val = e.target.value; const today = getTodayString(); if (val && val < today) { setFilters(prev => ({ ...prev, date: today })); } else { setFilters(prev => ({ ...prev, date: val })); } }} /></div>
+                                <div className="filter-group"><label>Search by Venmo</label><input type="text" className="input" placeholder="@username" value={filters.venmo} onChange={(e) => setFilters(prev => ({ ...prev, venmo: e.target.value }))} /></div>
+                                <div className="filter-row-mobile">
+                                    <div className="filter-group"><label>Spot Size</label><select className="input" value={filters.size} onChange={(e) => setFilters(prev => ({ ...prev, size: e.target.value }))}><option value="">All Sizes</option><option value="Full Size">Full Size</option><option value="Compact">Compact</option><option value="Motorcycle">Motorcycle</option></select></div>
+                                    <div className="filter-group"><label>Floor</label><select className="input" value={filters.floor} onChange={(e) => setFilters(prev => ({ ...prev, floor: e.target.value }))}><option value="">All</option><option value="P1">P1</option><option value="P2">P2</option><option value="P3">P3</option></select></div>
+                                </div>
+                                <div className="filter-group"><label>Sort by</label><select className="input" value={sortBy} onChange={(e) => setSortBy(e.target.value)}><option value="random">Random</option><option value="soonest">Soonest Available</option><option value="longest">Longest Duration</option></select></div>
+                                {hasFilters && <button className="btn btn-clear-filter" onClick={clearFilters}>Clear Filters</button>}
+                            </div>
+                            <div className="results-count">{filteredSpots.length} {filteredSpots.length === 1 ? 'spot' : 'spots'} available{filters.date && ` on ${formatDateDirect(filters.date)}`}</div>
+                            {loading ? <div className="loading"><div className="spinner"></div><div>Loading available spots...</div></div> : filteredSpots.length === 0 ? <div className="empty-state"><div className="icon">🚗</div><div className="title">No spots available</div><div>Check back later or list your own!</div></div> : <div className="spots-grid">{filteredSpots.map(spot => <SpotCard key={spot.id} spot={spot} onRent={handleRent} onManage={handleManage} />)}</div>}
+                        </main>
+                    )}
+                    <AddSpotModal isOpen={addModalOpen} onClose={() => setAddModalOpen(false)} onSubmit={loadSpots} />
+                    <RentModal isOpen={rentModalOpen} onClose={() => { setRentModalOpen(false); setSelectedSpot(null); }} spot={selectedSpot} onSubmit={loadSpots} />
+                    <ManageModal isOpen={manageModalOpen} onClose={() => { setManageModalOpen(false); setSelectedSpot(null); }} spot={selectedSpot} onUpdate={loadSpots} onDelete={loadSpots} />
+                </div>
+            );
+        };
+
+        const App = () => {
+            const [authState, setAuthState] = useState('loading'); // 'loading', 'authenticated', 'unauthenticated'
+            const [currentPage, setCurrentPage] = useState('dashboard'); // 'dashboard', 'faq'
+            
+            useEffect(() => {
+                const checkAuth = async () => {
+                    const session = getSession();
+                    
+                    // No session exists
+                    if (!session) {
+                        setAuthState('unauthenticated');
+                        return;
+                    }
+                    
+                    // Session expired (7 days)
+                    if (isSessionExpired(session)) {
+                        clearSession();
+                        setAuthState('unauthenticated');
+                        return;
+                    }
+                    
+                    // Verify password version with server
+                    const result = await api.checkSession(session.version);
+                    if (result.valid) {
+                        setAuthState('authenticated');
+                    } else {
+                        // Password was changed, force re-login
+                        clearSession();
+                        setAuthState('unauthenticated');
+                    }
+                };
+                
+                checkAuth();
+            }, []);
+            
+            const handleLogout = () => {
+                clearSession();
+                setAuthState('unauthenticated');
+            };
+            
+            if (authState === 'loading') {
+                return (
+                    <div className="access-screen">
+                        <div className="access-box">
+                            <div className="logo-icon">🚗</div>
+                            <h1>The Palms Parking</h1>
+                            <div className="spinner" style={{ marginTop: '20px' }}></div>
+                            <p style={{ marginTop: '16px' }}>Checking access...</p>
+                        </div>
+                    </div>
+                );
+            }
+            
+            if (authState === 'unauthenticated') {
+                return <AccessScreen onAccess={() => setAuthState('authenticated')} />;
+            }
+            
+            return <Dashboard onLogout={handleLogout} currentPage={currentPage} onNavigate={setCurrentPage} />;
+        };
+
+        ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+    </script>
+</body>
+</html>
