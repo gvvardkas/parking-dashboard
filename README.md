@@ -180,9 +180,3 @@ This version was converted from a single HTML file to a full React + TypeScript 
 - ✅ Hot module replacement
 - ✅ Better code organization
 - ✅ Preserved all original functionality
-
-The original `index.html` is backed up as `index.html.backup`.
-
-## License
-
-Private project for The Palms apartment complex.
