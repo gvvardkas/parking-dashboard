@@ -223,6 +223,14 @@ export const RentModal: React.FC<RentModalProps> = ({ isOpen, onClose, spot, onS
     onClose();
   };
 
+  const payVenmoUrl = () => {
+    const handle = spot.venmo.replace('@', '')
+    const formattedStart = formatDateTimeDisplay(startDateTime)
+    const formattedEnd = formatDateTimeDisplay(endDateTime)
+    const note = encodeURIComponent(`Parking Spot Rental: ${formattedStart} → ${formattedEnd}`)
+    return `https://venmo.com/${handle}?txn=pay&amount=${total}&note=${note}`
+  };
+
   // Determine minimum date for rental start (today in PST or spot start date, whichever is later)
   const nowPST = getNowInPST();
   const minFromDate = spotFrom.date > nowPST.date ? spotFrom.date : nowPST.date;
@@ -312,7 +320,7 @@ export const RentModal: React.FC<RentModalProps> = ({ isOpen, onClose, spot, onS
               </button>
             </div>
             <a
-              href={`https://venmo.com/${spot.venmo.replace('@', '')}?txn=pay&amount=${total}&note=${encodeURIComponent(`Parking Spot Rental: ${rentData.fromDate} @ ${rentData.fromTime} to ${rentData.toDate} @ ${rentData.toTime} PST`)}`}
+              href={payVenmoUrl()}
               className="btn btn-secondary"
               style={{ marginTop: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', textDecoration: 'none' }}
               target="_blank"
