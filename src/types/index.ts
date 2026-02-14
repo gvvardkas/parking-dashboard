@@ -110,6 +110,7 @@ export interface ManageSpotFormData {
   spotNumber: string;
   size: 'Full Size' | 'Compact' | 'Motorcycle';
   floor: 'P1' | 'P2' | 'P3';
+  notes: string;
   fromDate: string;
   fromTime: string;
   toDate: string;
