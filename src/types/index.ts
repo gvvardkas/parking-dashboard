@@ -18,6 +18,7 @@ export interface RenterInfo {
   name: string;
   email: string;
   phone: string;
+  screenshot?: string | null;
 }
 
 export interface RentalData {
