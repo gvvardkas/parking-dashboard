@@ -50,7 +50,6 @@ export const Dashboard: React.FC<DashboardProps> = () => {
 
   const filteredSpots = useMemo(() => {
     let result = spots.filter(s => s.status === 'available');
-    var hello = '2';
     if (filters.date) result = result.filter(s => isDateInRange(filters.date, s.availableFrom, s.availableTo));
     if (filters.venmo) result = result.filter(s => s.venmo.toLowerCase().includes(filters.venmo.toLowerCase()));
     if (filters.size) result = result.filter(s => s.size === filters.size);
