@@ -312,7 +312,7 @@ export const RentModal: React.FC<RentModalProps> = ({ isOpen, onClose, spot, onS
               </button>
             </div>
             <a
-              href={`https://venmo.com/${spot.venmo.replace('@', '')}?txn=pay&amount=${total}&note=${encodeURIComponent(`Parking Spot Rental: ${rentData.fromDate} @ ${rentData.fromTime} to ${rentData.toDate} @ ${rentData.toTime} PST`)}`}
+              href={`https://venmo.com/${spot.venmo.replace('@', '')}?txn=pay&amount=${total}&note=Parking Spot Rental: ${formatDateTimeDisplay(startDateTime).replace(' PST', '')} to ${formatDateTimeDisplay(endDateTime)}`}
               className="btn btn-secondary"
               style={{ marginTop: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', textDecoration: 'none' }}
               target="_blank"
