@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Analytics } from '@vercel/analytics/react';
 import { AccessScreen } from './components/AccessScreen';
 import { Dashboard } from './components/Dashboard';
 import { getSession, clearSession, isSessionExpired } from './utils/session';
@@ -49,25 +50,36 @@ export const App: React.FC = () => {
 
   if (authState === 'loading') {
     return (
-      <div className="access-screen">
-        <div className="access-box">
-          <h1>🚗 The Palms Parking</h1>
-          <div className="spinner" style={{ marginTop: '20px' }}></div>
-          <p style={{ marginTop: '16px' }}>Checking access...</p>
+      <>
+        <div className="access-screen">
+          <div className="access-box">
+            <h1>🚗 The Palms Parking</h1>
+            <div className="spinner" style={{ marginTop: '20px' }}></div>
+            <p style={{ marginTop: '16px' }}>Checking access...</p>
+          </div>
         </div>
-      </div>
+        <Analytics />
+      </>
     );
   }
 
   if (authState === 'unauthenticated') {
-    return <AccessScreen onAccess={() => setAuthState('authenticated')} />;
+    return (
+      <>
+        <AccessScreen onAccess={() => setAuthState('authenticated')} />
+        <Analytics />
+      </>
+    );
   }
 
   return (
-    <Dashboard
-      onLogout={handleLogout}
-      currentPage={currentPage}
-      onNavigate={setCurrentPage}
-    />
+    <>
+      <Dashboard
+        onLogout={handleLogout}
+        currentPage={currentPage}
+        onNavigate={setCurrentPage}
+      />
+      <Analytics />
+    </>
   );
 };
