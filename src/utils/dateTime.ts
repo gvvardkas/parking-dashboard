@@ -80,14 +80,23 @@ export const getTodayString = (): string => {
   return new Date().toISOString().split('T')[0];
 };
 
+/**
+ * Check if a given date falls within a date range
+ * All comparisons done in PST timezone
+ * @param dateStr - The date to check (YYYY-MM-DD format from date picker)
+ * @param startISO - Start of range (ISO string with timezone)
+ * @param endISO - End of range (ISO string with timezone)
+ */
 export const isDateInRange = (dateStr: string, startISO: string, endISO: string): boolean => {
-  const d = new Date(dateStr);
-  const start = new Date(startISO);
-  const end = new Date(endISO);
-  d.setHours(12, 0, 0, 0);
-  start.setHours(0, 0, 0, 0);
-  end.setHours(23, 59, 59, 999);
-  return d >= start && d <= end;
+  if (!dateStr || !startISO || !endISO) return false;
+  
+  // Parse the start and end dates in PST timezone to get just the date portion
+  const startPST = parseDateTime(startISO);
+  const endPST = parseDateTime(endISO);
+  
+  // Compare date strings directly (YYYY-MM-DD format)
+  // dateStr is already in YYYY-MM-DD format from the date picker
+  return dateStr >= startPST.date && dateStr <= endPST.date;
 };
 
 // ============================================================
