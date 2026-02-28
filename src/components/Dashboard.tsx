@@ -23,10 +23,12 @@ const SORT_OPTIONS: { value: SortBy; label: string }[] = [
   { value: 'longest', label: 'Longest Duration' }
 ];
 
+const SIZE_OPTIONS = ['Full Size', 'Compact', 'Motorcycle'] as const;
+
 export const Dashboard: React.FC<DashboardProps> = ({ currentPage, onNavigate }) => {
   const [spots, setSpots] = useState<Spot[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filters, setFilters] = useState<Filters>({ date: '', venmo: '', size: '', floor: '' });
+  const [filters, setFilters] = useState<Filters>({ date: '', venmo: '', sizes: [], floor: '' });
   const [sortBy, setSortBy] = useState<SortBy>('random');
   const [shuffledOrder, setShuffledOrder] = useState<string[]>([]);
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -54,11 +56,24 @@ export const Dashboard: React.FC<DashboardProps> = ({ currentPage, onNavigate })
     loadSpots();
   }, [loadSpots]);
 
+  const handleSizeToggle = (size: string) => {
+    setFilters(prev => {
+      const currentSizes = prev.sizes;
+      if (currentSizes.includes(size)) {
+        // Remove size
+        return { ...prev, sizes: currentSizes.filter(s => s !== size) };
+      } else {
+        // Add size
+        return { ...prev, sizes: [...currentSizes, size] };
+      }
+    });
+  };
+
   const filteredSpots = useMemo(() => {
     let result = spots.filter(s => s.status === 'available');
     if (filters.date) result = result.filter(s => isDateInRange(filters.date, s.availableFrom, s.availableTo));
     if (filters.venmo) result = result.filter(s => s.venmo.toLowerCase().includes(filters.venmo.toLowerCase()));
-    if (filters.size) result = result.filter(s => s.size === filters.size);
+    if (filters.sizes.length > 0) result = result.filter(s => filters.sizes.includes(s.size));
     if (filters.floor) result = result.filter(s => s.floor === filters.floor);
     switch (sortBy) {
       case 'random':
@@ -74,8 +89,8 @@ export const Dashboard: React.FC<DashboardProps> = ({ currentPage, onNavigate })
     return result;
   }, [spots, filters, sortBy, shuffledOrder]);
 
-  const hasFilters = filters.date || filters.venmo || filters.size || filters.floor;
-  const clearFilters = () => setFilters({ date: '', venmo: '', size: '', floor: '' });
+  const hasFilters = filters.date || filters.venmo || filters.sizes.length > 0 || filters.floor;
+  const clearFilters = () => setFilters({ date: '', venmo: '', sizes: [], floor: '' });
   const handleRent = (spot: Spot) => {
     setSelectedSpot(spot);
     setRentModalOpen(true);
@@ -160,14 +175,20 @@ export const Dashboard: React.FC<DashboardProps> = ({ currentPage, onNavigate })
               />
             </div>
           </div>
-          <div className="filter-group" style={{ minWidth: '130px' }}>
+          <div className="filter-group">
             <label>Spot Size</label>
-            <select className="input" value={filters.size} onChange={(e) => setFilters(prev => ({ ...prev, size: e.target.value }))}>
-              <option value="">All Sizes</option>
-              <option value="Full Size">Full Size</option>
-              <option value="Compact">Compact</option>
-              <option value="Motorcycle">Motorcycle</option>
-            </select>
+            <div className="checkbox-group">
+              {SIZE_OPTIONS.map(size => (
+                <label key={size} className="checkbox-label">
+                  <input
+                    type="checkbox"
+                    checked={filters.sizes.includes(size)}
+                    onChange={() => handleSizeToggle(size)}
+                  />
+                  <span className="checkbox-text">{size}</span>
+                </label>
+              ))}
+            </div>
           </div>
           <div className="filter-group" style={{ minWidth: '100px' }}>
             <label>Floor</label>
