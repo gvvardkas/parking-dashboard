@@ -35,11 +35,13 @@ export const combineDateTime = (date: string, time: string): string => {
   return `${date}T${time}:00`;
 };
 
+// Format date with day of week (e.g., "Sat, Feb 28, 2026")
 export const formatDate = (isoString: string): string => {
   if (!isoString) return '';
   const dt = new Date(isoString);
   if (isNaN(dt.getTime())) return '';
   return dt.toLocaleDateString('en-US', {
+    weekday: 'short',
     month: 'short',
     day: 'numeric',
     year: 'numeric',
@@ -100,7 +102,7 @@ export const isDateInRange = (dateStr: string, startISO: string, endISO: string)
 };
 
 // ============================================================
-// NEW: PST "NOW" UTILITIES FOR VALIDATION
+// PST "NOW" UTILITIES FOR VALIDATION
 // ============================================================
 
 /**
@@ -179,4 +181,15 @@ export const getMinTimeForDatePST = (date: string): string | undefined => {
     return now.time;
   }
   return undefined;
+};
+
+/**
+ * Format 24-hour time (HH:MM) to 12-hour format (e.g., "1:30 PM")
+ */
+export const formatTime24to12 = (time24: string): string => {
+  if (!time24) return '';
+  const [hours, minutes] = time24.split(':').map(Number);
+  const period = hours >= 12 ? 'PM' : 'AM';
+  const hours12 = hours % 12 || 12;
+  return `${hours12}:${minutes.toString().padStart(2, '0')} ${period}`;
 };
