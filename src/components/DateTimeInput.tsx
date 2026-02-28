@@ -1,5 +1,6 @@
 import React from 'react';
 import { CONFIG } from '../config/constants';
+import { formatTime24to12 } from '../utils/dateTime';
 
 interface DateTimeInputProps {
   label: string;
@@ -53,9 +54,9 @@ export const DateTimeInput: React.FC<DateTimeInputProps> = ({
     </div>
     {showTimeBounds && (minTime || maxTime) && (
       <div className="hint" style={{ color: 'var(--accent-primary)' }}>
-        {minTime && `Earliest: ${minTime}`}
+        {minTime && `Earliest: ${formatTime24to12(minTime)}`}
         {minTime && maxTime && ' | '}
-        {maxTime && `Latest: ${maxTime}`}
+        {maxTime && `Latest: ${formatTime24to12(maxTime)}`}
       </div>
     )}
   </div>
